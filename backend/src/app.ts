@@ -27,6 +27,9 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 }));
 
 // Routes
+app.get("/health", (req, res) => {
+    res.status(200).json({ status: "OK" });
+});
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/mission-type",missionType)
