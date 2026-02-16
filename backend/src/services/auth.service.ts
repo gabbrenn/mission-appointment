@@ -3,6 +3,7 @@ import { generateToken, TokenPayload } from '../utils/jwt';
 import { UserRepository } from '../repositories/user.repository';
 import { AuditLogRepository } from '../repositories/auditLog.repository';
 import { User } from '@prisma/client';
+import { hashPassword } from '../utils/password';
 
 export class AuthService {
   private userRepository: UserRepository;
@@ -71,6 +72,22 @@ export class AuthService {
       },
     };
   }
+
+  // async register(data: {
+  //   email: string;
+  //   password: string;
+  //   firstName: string;
+  //   lastName: string;
+  //   role: 'admin' | 'user';
+  // }) {
+  //   // Check if email already exists
+  //   const existingUser = await this.userRepository.getUserByEmail(data.email);
+  //   if (existingUser) {
+  //     throw new Error('Email already in use');
+  //   }
+  //   data.password = await hashPassword(data.password);
+  //   return this.userRepository.createUser(data);
+  // }
 
   async logout(userId: string, ipAddress?: string, userAgent?: string) {
     // Log the logout action to AuditLog

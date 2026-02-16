@@ -16,7 +16,10 @@ export class UserService {
     }
 
     async createUser(data: CreateUserDto) {
-        await this.ensureUserUnique(data.email, data.employeeId);
+        // Auto-generate employeeId if not provided
+        const employeeId = data.employeeId || await this.generateEmployeeId();
+        
+        await this.ensureUserUnique(data.email, employeeId);
         
         // Validate HEAD_OF_DEPARTMENT role constraints
         if (data.role === Role.HEAD_OF_DEPARTMENT && data.departmentId) {
@@ -27,6 +30,7 @@ export class UserService {
 
         return this.userRepository.createUser({
             ...data,
+            employeeId,
             password: hashedPassword,
         } as Prisma.UserCreateInput);
     }
@@ -142,5 +146,20 @@ export class UserService {
         if (employeeExists) {
             throw new ApiError("User with this employee ID already exists", 409);
         }
+    }
+
+    private async generateEmployeeId(): Promise<string> {
+        const timestamp = Date.now().toString().slice(-8);
+        const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+        const employeeId = `EMP${timestamp}${random}`;
+        
+        // Check if this ID already exists (very unlikely but possible)
+        const existing = await this.userRepository.getUserByEmployeeId(employeeId);
+        if (existing) {
+            // Recursively generate a new one if collision occurs
+            return this.generateEmployeeId();
+        }
+        
+        return employeeId;
     }
 }

@@ -2,12 +2,15 @@ import { Request, Response, NextFunction } from "express";
 import { AuthService } from "../services/auth.service";
 import { ApiResponseHelper } from "../utils/response";
 import { UnauthorizedError, BadRequestError } from "../utils/appError";
+import { UserService } from "../services/user.service";
 
 export class AuthController {
     private authService: AuthService;
+    private userService: UserService;
 
     constructor() {
         this.authService = new AuthService();
+        this.userService = new UserService();
     }
 
     async login(req: Request, res: Response, next: NextFunction) {
@@ -39,6 +42,20 @@ export class AuthController {
             } else {
                 next(error);
             }
+        }
+    }
+
+    async register(req: Request, res: Response, next: NextFunction) {
+        try {
+            const result = await this.userService.registerUser(req.body);
+            return ApiResponseHelper.success(
+                res,
+                result,
+                "Registered successfully",
+                201
+            );
+        } catch (error: any) {
+            next(error);
         }
     }
 
