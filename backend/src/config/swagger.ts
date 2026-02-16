@@ -18,6 +18,10 @@ const options: swaggerJsdoc.Options = {
                 url: "http://localhost:3000",
                 description: "Development server",
             },
+            {
+                url: "https://mission-appointment.onrender.com/api",
+                description: "Production server",
+            },
         ],
         components: {
             securitySchemes: {
