@@ -11,7 +11,12 @@ const app = express();
 
 // CORS configuration - Allow frontend to access the API
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:8081', 'http://localhost:3000'],
+    origin: [
+        'http://localhost:5173', 
+        'http://localhost:8081', 
+        'http://localhost:3000',
+        'https://mission-appointment.vercel.app'
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
