@@ -39,7 +39,7 @@ class AuthService {
    * Login user with email and password
    */
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
-    const response = await apiClient.post<LoginResponse>('/users/login', credentials);
+    const response = await apiClient.post<LoginResponse>('/auth/login', credentials);
     
     if (response.success && response.data) {
       // Store token and user data
@@ -55,7 +55,7 @@ class AuthService {
    */
   async logout(): Promise<void> {
     try {
-      await apiClient.post('/users/logout');
+      await apiClient.post('/auth/logout');
     } finally {
       // Clear local storage regardless of API response
       localStorage.removeItem('token');
@@ -67,7 +67,7 @@ class AuthService {
    * Get login history for current user
    */
   async getLoginHistory(): Promise<AuditLogEntry[]> {
-    const response = await apiClient.get<AuditLogEntry[]>('/users/login-history');
+    const response = await apiClient.get<AuditLogEntry[]>('/auth/login-history');
     return response.data;
   }
 

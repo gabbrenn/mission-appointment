@@ -1,0 +1,26 @@
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer compass ring -->
+  <circle cx="150" cy="150" r="120" fill="none" stroke="#2C4F7C" stroke-width="8"/>
+  
+  <!-- Compass points -->
+  <polygon points="150,20 160,50 150,60 140,50" fill="#B8860B"/>
+  <polygon points="280,150 250,140 240,150 250,160" fill="#6B7280"/>
+  <polygon points="150,280 140,250 150,240 160,250" fill="#6B7280"/>
+  <polygon points="20,150 50,160 60,150 50,140" fill="#6B7280"/>
+  
+  <!-- Inner compass design -->
+  <circle cx="150" cy="150" r="80" fill="none" stroke="#2C4F7C" stroke-width="4"/>
+  
+  <!-- Central M logo -->
+  <text x="150" y="170" font-family="Arial, sans-serif" font-size="60" font-weight="bold" text-anchor="middle" fill="#2C4F7C">M</text>
+  
+  <!-- Compass needle -->
+  <polygon points="150,70 155,145 150,155 145,145" fill="#B8860B"/>
+  <circle cx="150" cy="150" r="8" fill="#2C4F7C"/>
+  
+  <!-- Direction markers -->
+  <circle cx="150" cy="80" r="4" fill="#2C4F7C"/>
+  <circle cx="220" cy="150" r="4" fill="#2C4F7C"/>
+  <circle cx="150" cy="220" r="4" fill="#2C4F7C"/>
+  <circle cx="80" cy="150" r="4" fill="#2C4F7C"/>
+</svg>
