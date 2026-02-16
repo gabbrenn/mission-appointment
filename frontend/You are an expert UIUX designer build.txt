@@ -1,0 +1,135 @@
+You are an expert UI/UX designer and we have started to building a Mission Appointment System (MAS) for Régie Nationale des Postes (RNP) - Burundi's government postal service.
+
+CONTEXT was:
+To Replace manual mission management with a digital platform featuring auto-assignment, multi-level approvals, and reporting.
+
+With 6 User Roles:**
+1. Employees - Accept/decline missions
+2. Department Heads - Create missions, approve substitutions
+3. Finance Officers - Budget approvals, reimbursements
+4. HR Officers - Availability confirmations
+5. Directors - Final approvals, strategic oversight
+6. Admins - System configuration, user management
+
+**Core Feature: Auto-Assignment Algorithm**
+System assigns missions based on: qualifications match, department, fairness (prioritizes employees with no missions or oldest last mission), availability.
+
+**Key Workflows:**
+Mission Creation → Auto-Assignment → Employee Response (Accept/Substitute/Decline) → Multi-Level Approvals (Dept Head → Finance → HR → Director) → Post-Mission Reporting
+
+## DESIGN REQUIREMENTS
+- Professional government aesthetic: Blue/green primary, orange alerts
+- French language (labels: Tableau de bord, Approuver, Rejeter, etc.)
+- WCAG 2.1 AA accessible, responsive (desktop-first)
+- Clear status indicators, progressive disclosure
+- Mock data: Burundian names, cities (Gitega, Ngozi), departments (Distribution, Logistique, Finances, RH), currency (BIF)
+
+## PAGES TO BUILD
+
+### 1. AUTH
+- Login (email, password, remember me, forgot password, RNP logo, language selector)
+- Password Reset
+
+### 2. EMPLOYEE
+**Dashboard:** New assignments (mission card with Accept/Request Substitution/Decline), active missions, history table, stats (total missions, fairness score)
+**Mission Details:** Full info, approval timeline stepper, documents, budget
+**Substitution Form:** Reason dropdown, explanation, file upload, suggest replacement
+**Report Form:** Activity report (rich text), expenses (line items, receipts), submit/draft
+**Profile:** Info, skills tags, availability toggle, change password
+
+### 3. DEPARTMENT HEAD
+**Dashboard:** Stats (staff on mission, pending approvals, budget %), Create Mission button, approval cards, substitution requests, team table
+**Create Mission (4 steps):** Details (title, type, destination, dates), Requirements (dept, skills), Budget (breakdown, code), Review (preview assigned employee)
+**Approval Page:** Mission details, employee profile card (qualifications, history, fairness explanation), budget impact, approve/reject/modify
+**Substitution Review:** Original mission, request details, alternative candidates (system suggests 3-5), approve/reject
+**Reports:** Charts (missions/employee, trends, types), filters, export
+
+### 4. FINANCE
+**Dashboard:** Budget stats, pending approvals (budget indicator), pending reimbursements (variance), budget chart
+**Budget Approval:** Mission details, budget breakdown, availability check, historical comparison
+**Expense Review:** Line items, receipt gallery, variance, flag outliers, approve full/partial/reject
+**Reports:** Budget utilization, cost analysis, department comparison, export
+
+### 5. HR
+**Dashboard:** Employee stats, pending confirmations, availability calendar (color-coded), fairness monitor
+**Confirmation Page:** Mission details, employee status, leave check, conflict detection
+**Employee Management:** Directory table, bulk actions, add/edit profiles, skills database
+**Fairness Analytics:** Distribution charts, equity scores, outlier identification
+
+### 6. DIRECTOR
+**Dashboard:** KPIs, interactive Burundi map (mission pins), budget tracking (progress bar, burn rate), fairness gauge, activity feed, pending finals
+**Final Approval:** Comprehensive summary, full approval timeline, employee profile, all comments, strategic notes
+**Analytics:** Executive dashboard, custom report builder, ROI analysis, export (PDF/PowerPoint)
+
+### 7. ADMIN
+**Dashboard:** System health (users, uptime, missions, sessions, errors), quick actions, user activity chart, alerts (critical/warning/info), mission stats
+**User Management:** Directory table (name, email, role, dept, status, last login), add user modal (form with auto-password), edit/reset/suspend/delete, bulk import CSV
+**Roles & Permissions:** Role cards, edit permissions modal (checkbox grid by module: Missions, Approvals, Users, Finance, Reports, Settings), custom role creation
+**Departments:** Dept table, add/edit modal (name, head, budget, parent dept), org chart visualization, mission types config
+**System Config:**
+  - General: Org info, logo upload, color themes, timezone, language, fiscal year
+  - Missions: Fairness weight slider, frequency threshold, max missions/year, gap between missions, toggles
+  - Approvals: Drag-drop workflow builder, timeout, parallel approvals, notifications
+  - Budget: Warning/critical thresholds, per diem rates table, auto-calculate toggle
+  - Notifications: SMTP config, email templates editor, in-app toggles
+  - Security: Password policy (length, complexity, expiry), session timeout, 2FA
+  - Backup: Schedule, retention, manual backup button, download
+**Audit Logs:** Filters (date, user, role, action, module), table (timestamp, user, action, details, IP), expandable rows, security events, export
+**Reports:** System performance, usage stats, custom builder, export
+**Maintenance:** Database (size, optimize, integrity check), cache, scheduled jobs, updates, error logs
+**Support:** FAQ management, user guides, support tickets, announcements (role-targeted, scheduled)
+**Notifications:** Templates editor (variables, preview, multi-language), history log
+
+### 8. SHARED
+- Notifications page (list, filters, mark read, quick actions)
+- Help (guides by role, FAQ, videos, contact form)
+- Settings (profile, notification prefs, language, theme)
+
+## COMPONENTS
+
+**Navigation:** Top bar (logo, role menu, notifications bell with badge, user dropdown) OR sidebar (collapsible, icons)
+
+**Reusable:**
+1. Mission Card (compact/expandable, status badges, actions)
+2. Approval Timeline (stepper: completed/current/pending/rejected)
+3. Employee Profile Card (photo, stats, skills tags)
+4. Budget Widget (currency, progress bar, variance)
+5. Data Table (sortable, searchable, filterable, pagination, export)
+6. Status Badge (color-coded, icons, tooltips)
+7. File Upload (drag-drop, multi-file, preview, validation)
+8. Modals (confirmation, forms, alerts)
+9. Empty States (illustration, helpful text, CTA)
+10. Permission Grid (matrix, select all, conflict warnings)
+11. Activity Timeline (grouped by time, icons, expandable)
+12. System Health Widget (status indicators, gauges, alerts)
+13. Config Form (grouped sections, validation, preview, reset)
+14. Audit Entry (expandable, before/after, syntax highlighting)
+
+**Charts:** Line (trends), bar (comparisons), pie (distributions), gauge (scores) - use Recharts
+
+**Forms:** Inline validation, error/success states, required indicators (*), help tooltips
+
+**Buttons:** Primary (solid), secondary (outlined), danger (red), disabled, loading states
+
+**Feedback:** Loading skeletons, toast notifications, progress indicators, confirmation dialogs
+
+## TECH STACK
+React + TypeScript, Tailwind CSS, Lucide icons, Recharts, React Hook Form, React Router, date-fns, Axios (mock data)
+
+## DELIVERABLES
+Production-ready app with:
+- All 8 role sections (60+ pages)
+- Complete navigation for all 6 roles
+- All components implemented
+- Realistic French mock data
+- Responsive design
+- Interactive charts
+- Form validation
+- Professional UI (government aesthetic)
+
+**Demo Workflows:**
+1. Mission creation → auto-assignment → employee accepts → approval chain → completion
+2. Substitution request → approval → re-assignment
+3. Admin creates user → assigns role → configures workflow
+
+Build systematically: Auth → Employee → Dept Head → Finance → HR → Director → Admin → Shared pages.

@@ -1,0 +1,174 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* RNP Mission Appointment System - Government Design System */
+
+@layer base {
+  :root {
+    /* Government professional palette - Navy/Green/Orange */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
+
+    /* Navy Blue - Primary brand */
+    --primary: 215 60% 28%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Forest Green - Success/Secondary */
+    --secondary: 160 45% 35%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 15% 93%;
+    --muted-foreground: 215 15% 45%;
+
+    /* Teal accent */
+    --accent: 180 40% 40%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Alert Orange */
+    --destructive: 25 90% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 20% 88%;
+    --input: 210 20% 88%;
+    --ring: 215 60% 28%;
+
+    --radius: 0.5rem;
+
+    /* Status colors */
+    --status-pending: 45 95% 50%;
+    --status-pending-foreground: 45 95% 20%;
+    --status-approved: 160 60% 40%;
+    --status-approved-foreground: 0 0% 100%;
+    --status-rejected: 0 70% 50%;
+    --status-rejected-foreground: 0 0% 100%;
+    --status-active: 200 80% 45%;
+    --status-active-foreground: 0 0% 100%;
+
+    /* Sidebar */
+    --sidebar-background: 215 60% 22%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-primary: 160 45% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 50% 32%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 215 50% 30%;
+    --sidebar-ring: 160 45% 45%;
+    --sidebar-muted: 215 30% 60%;
+
+    /* Chart colors */
+    --chart-1: 215 60% 40%;
+    --chart-2: 160 45% 40%;
+    --chart-3: 25 90% 55%;
+    --chart-4: 280 50% 50%;
+    --chart-5: 45 95% 50%;
+  }
+
+  .dark {
+    --background: 215 30% 10%;
+    --foreground: 210 20% 95%;
+
+    --card: 215 30% 14%;
+    --card-foreground: 210 20% 95%;
+
+    --popover: 215 30% 14%;
+    --popover-foreground: 210 20% 95%;
+
+    --primary: 200 70% 55%;
+    --primary-foreground: 215 30% 10%;
+
+    --secondary: 160 50% 45%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 215 25% 20%;
+    --muted-foreground: 210 15% 60%;
+
+    --accent: 180 45% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 25 85% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 25% 22%;
+    --input: 215 25% 22%;
+    --ring: 200 70% 55%;
+
+    --sidebar-background: 215 35% 12%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-primary: 160 50% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 30% 20%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 215 30% 18%;
+    --sidebar-ring: 160 50% 50%;
+    --sidebar-muted: 215 20% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Source Sans 3', 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', system-ui, sans-serif;
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  .btn-gov-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium;
+  }
+
+  .btn-gov-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors font-medium;
+  }
+
+  .btn-gov-outline {
+    @apply border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors font-medium;
+  }
+
+  .card-gov {
+    @apply bg-card rounded-lg border shadow-sm hover:shadow-md transition-shadow;
+  }
+
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+
+  .nav-link-active {
+    @apply bg-sidebar-accent text-sidebar-accent-foreground;
+  }
+
+  .input-gov {
+    @apply border-2 border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .gradient-gov {
+    background: linear-gradient(135deg, hsl(215 60% 28%) 0%, hsl(200 50% 35%) 100%);
+  }
+
+  .gradient-success {
+    background: linear-gradient(135deg, hsl(160 45% 35%) 0%, hsl(160 50% 45%) 100%);
+  }
+}
