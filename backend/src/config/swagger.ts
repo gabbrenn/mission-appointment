@@ -19,7 +19,7 @@ const options: swaggerJsdoc.Options = {
                 description: "Development server",
             },
             {
-                url: "https://mission-appointment.onrender.com/api",
+                url: "https://mission-appointment.onrender.com",
                 description: "Production server",
             },
         ],
