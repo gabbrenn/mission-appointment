@@ -4,9 +4,11 @@ exports.AuthController = void 0;
 const auth_service_1 = require("../services/auth.service");
 const response_1 = require("../utils/response");
 const appError_1 = require("../utils/appError");
+const user_service_1 = require("../services/user.service");
 class AuthController {
     constructor() {
         this.authService = new auth_service_1.AuthService();
+        this.userService = new user_service_1.UserService();
     }
     async login(req, res, next) {
         try {
@@ -31,6 +33,15 @@ class AuthController {
             else {
                 next(error);
             }
+        }
+    }
+    async register(req, res, next) {
+        try {
+            const result = await this.userService.registerUser(req.body);
+            return response_1.ApiResponseHelper.success(res, result, "Registered successfully", 201);
+        }
+        catch (error) {
+            next(error);
         }
     }
     async logout(req, res, next) {

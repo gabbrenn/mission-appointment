@@ -78,7 +78,7 @@ export default function AdminDepartments() {
   const [isLoadingDepartments, setIsLoadingDepartments] = useState(false);
 
   // Mock departments data (kept for error fixing)
-  const mockDepartmentData = departments.map((name, index) => ({
+  const mockDepartmentData: Department[] = departments.map((name, index) => ({
     id: `dept-${index + 1}`,
     name,
     code: `DEP-${String(index + 1).padStart(3, '0')}`,
@@ -90,7 +90,7 @@ export default function AdminDepartments() {
     budget: 15000000 + Math.floor(Math.random() * 25000000),
     description: `Department responsible for operations of ${name.toLowerCase()}.`,
     location: ['Bujumbura', 'Gitega', 'Ngozi'][index % 3],
-    status: index % 5 === 4 ? 'inactive' : 'active',
+    status: index % 5 === 4 ? ('inactive' as const) : ('active' as const),
   }));
 
   const [newDepartment, setNewDepartment] = useState({
@@ -139,7 +139,7 @@ export default function AdminDepartments() {
         const fetchedDepartments = await departmentService.getAllDepartments();
         
         // Map API response to Department interface
-        const mappedDepartments = fetchedDepartments.map(dept => {
+        const mappedDepartments: Department[] = fetchedDepartments.map((dept: any) => {
           const headUser = dept.headId ? allUsers.find(u => u.id === dept.headId) : null;
           return {
             id: dept.id,
@@ -147,7 +147,7 @@ export default function AdminDepartments() {
             code: dept.code,
             headId: dept.headId || '',
             headName: headUser ? `${headUser.firstName} ${headUser.lastName}` : 'Unassigned',
-            employeeCount: 0,
+            employeeCount: dept.users?.length || 0,
             budget: 0,
             description: dept.description || '',
             location: '—',

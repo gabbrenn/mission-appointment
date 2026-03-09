@@ -1,0 +1,286 @@
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { missionService, Mission } from "@/services/mission.service";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import {
+  ArrowLeft,
+  Building2,
+  Calendar,
+  MapPin,
+  User,
+  DollarSign,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
+import { formatCurrency } from "@/lib/mockData";
+
+export default function AdminMissionDetails() {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [mission, setMission] = useState<Mission | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const loadMission = async () => {
+      if (!id) return;
+
+      try {
+        setIsLoading(true);
+        const data = await missionService.getMissionById(id);
+        setMission(data);
+      } catch (error) {
+        console.error("Failed to load mission details:", error);
+        toast.error("Failed to load mission details");
+        navigate("/admin/missions");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadMission();
+  }, [id, navigate]);
+
+  const handleApprove = async () => {
+    if (!mission) return;
+
+    try {
+      setIsSubmitting(true);
+      await missionService.approveMission(mission.id, "Approved by Admin from mission details");
+      toast.success("Mission approved");
+      const updated = await missionService.getMissionById(mission.id);
+      setMission(updated);
+    } catch (error) {
+      console.error("Failed to approve mission:", error);
+      toast.error("Failed to approve mission");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!mission) return;
+
+    try {
+      setIsSubmitting(true);
+      await missionService.rejectMission(
+        mission.id,
+        "Rejected by Admin from mission details",
+        "Admin rejected mission"
+      );
+      toast.success("Mission rejected");
+      const updated = await missionService.getMissionById(mission.id);
+      setMission(updated);
+    } catch (error) {
+      console.error("Failed to reject mission:", error);
+      toast.error("Failed to reject mission");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <DashboardLayout userRole="admin">
+        <div className="text-sm text-muted-foreground">Loading mission details...</div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!mission) {
+    return (
+      <DashboardLayout userRole="admin">
+        <div className="text-sm text-muted-foreground">Mission not found.</div>
+      </DashboardLayout>
+    );
+  }
+
+//   const canApprove = !["APPROVED", "REJECTED", "CANCELLED", "COMPLETED"].includes(mission.status);
+  const budgetBreakdown = [
+    { label: "Transport", amount: Number(mission.estimatedBudget) * 0.35 },
+    { label: "Accommodation", amount: Number(mission.estimatedBudget) * 0.3 },
+    { label: "Per Diem", amount: Number(mission.estimatedBudget) * 0.25 },
+    { label: "Other", amount: Number(mission.estimatedBudget) * 0.1 },
+  ];
+
+  return (
+    <DashboardLayout userRole="admin">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/admin/missions")}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold">Mission Details</h1>
+              <p className="text-muted-foreground">{mission.missionNumber}</p>
+            </div>
+          </div>
+          <Badge variant="outline">{mission.status}</Badge>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="card-gov">
+              <CardHeader>
+                <CardTitle>{mission.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">{mission.description}</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    {mission.destination}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                    {mission.department?.name || "N/A"}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    {new Date(mission.startDate).toLocaleDateString()} - {new Date(mission.endDate).toLocaleDateString()}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    {formatCurrency(Number(mission.estimatedBudget))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium mb-2">Required Qualifications</p>
+                  <div className="flex flex-wrap gap-2">
+                    {mission.requiredQualifications.length > 0 ? (
+                      mission.requiredQualifications.map((item, index) => (
+                        <Badge key={index} variant="secondary">{item}</Badge>
+                      ))
+                    ) : (
+                      <span className="text-sm text-muted-foreground">No specific qualifications</span>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="card-gov">
+              <CardHeader>
+                <CardTitle>Budget Breakdown</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {budgetBreakdown.map((item) => (
+                    <div key={item.label} className="flex justify-between items-center">
+                      <span className="text-muted-foreground">{item.label}</span>
+                      <span className="font-medium">{formatCurrency(item.amount)}</span>
+                    </div>
+                  ))}
+                  <div className="border-t pt-3 flex justify-between items-center">
+                    <span className="font-semibold">Total</span>
+                    <span className="text-lg font-bold text-primary">
+                      {formatCurrency(Number(mission.estimatedBudget))}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+          </div>
+
+          <div>
+            <Card className="card-gov mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Assigned Employee
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {mission.assignments.length > 0 ? (
+                  <>
+                    <div className="flex items-center gap-4">
+                      <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-lg font-semibold text-primary">
+                          {mission.assignments[0].employee.firstName[0]}
+                          {mission.assignments[0].employee.lastName[0]}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-semibold leading-tight">
+                          {mission.assignments[0].employee.firstName} {mission.assignments[0].employee.lastName}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {mission.assignments[0].employee.role}
+                        </p>
+                        <Badge
+                          variant={
+                            mission.assignments[0].employee.availabilityStatus === "AVAILABLE"
+                              ? "default"
+                              : "secondary"
+                          }
+                          className="mt-1"
+                        >
+                          {mission.assignments[0].employee.availabilityStatus}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 text-sm border-t pt-3">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Department</span>
+                        <span>{mission.department?.name || "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Assignment Status</span>
+                        <Badge variant="outline">{mission.assignments[0].assignmentStatus}</Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Fairness Score</span>
+                        <span className="font-semibold text-primary">
+                          {mission.assignments[0].fairnessScoreAtAssignment}%
+                        </span>
+                      </div>
+                    </div>
+
+                    {mission.assignments[0].assignmentReason && (
+                      <div className="border-t pt-3">
+                        <p className="text-sm font-medium mb-1">Assignment Reason</p>
+                        <p className="text-xs text-muted-foreground">
+                          {mission.assignments[0].assignmentReason}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center text-muted-foreground py-8">
+                    <User className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p>No employee assigned yet</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="card-gov">
+              <CardHeader>
+                <CardTitle>Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Button className="w-full" onClick={handleApprove} disabled={isSubmitting}>
+                  <CheckCircle2 className="h-4 w-4 mr-1" />
+                  Approve Mission
+                </Button>
+                <Button variant="outline" className="w-full" onClick={handleReject} disabled={isSubmitting}>
+                  <XCircle className="h-4 w-4 mr-1" />
+                  Reject Mission
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}

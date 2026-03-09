@@ -25,119 +25,37 @@ import {
   Calendar,
   ArrowRight,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-
-interface Notification {
-  id: string;
-  type: 'mission' | 'approval' | 'budget' | 'system' | 'reminder';
-  title: string;
-  message: string;
-  timestamp: string;
-  isRead: boolean;
-  actionUrl?: string;
-  priority: 'low' | 'medium' | 'high';
-}
+import { useAuth } from "@/contexts/AuthContext";
+import { UserRole } from "@/lib/mockData";
+import { useNotifications } from "@/hooks/use-notifications";
+import { formatNotificationTime } from "@/lib/notifications";
 
 export default function Notifications() {
   const navigate = useNavigate();
+  const { user: authUser } = useAuth();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } = useNotifications();
   const [filter, setFilter] = useState('all');
 
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      type: 'mission',
-      title: 'New Mission Assigned',
-      message: 'You have been assigned to the mission "Inspection Bureau Postal Gitega".',
-      timestamp: '2026-01-20 14:30',
-      isRead: false,
-      actionUrl: '/employee/mission/MSN-001',
-      priority: 'high',
-    },
-    {
-      id: '2',
-      type: 'approval',
-      title: 'Mission Approuvée',
-      message: 'Votre mission "Formation RH Ngozi" a été approuvée par le directeur.',
-      timestamp: '2026-01-20 12:15',
-      isRead: false,
-      actionUrl: '/employee/mission/MSN-002',
-      priority: 'medium',
-    },
-    {
-      id: '3',
-      type: 'budget',
-      title: 'Alerte Budget',
-      message: 'Le budget de votre département a atteint 80% de l\'allocation annuelle.',
-      timestamp: '2026-01-20 10:00',
-      isRead: true,
-      priority: 'high',
-    },
-    {
-      id: '4',
-      type: 'reminder',
-      title: 'Rappel: Rapport en attente',
-      message: 'N\'oubliez pas de soumettre votre rapport pour la mission "Audit Bujumbura".',
-      timestamp: '2026-01-19 16:45',
-      isRead: true,
-      actionUrl: '/employee/report/MSN-003',
-      priority: 'medium',
-    },
-    {
-      id: '5',
-      type: 'system',
-      title: 'Maintenance Planifiée',
-      message: 'Le système sera indisponible le 25 janvier de 02:00 à 04:00.',
-      timestamp: '2026-01-19 09:00',
-      isRead: true,
-      priority: 'low',
-    },
-    {
-      id: '6',
-      type: 'approval',
-      title: 'Substitution Approuvée',
-      message: 'Votre demande de substitution pour la mission "Livraison Kayanza" a été approuvée.',
-      timestamp: '2026-01-18 14:20',
-      isRead: true,
-      priority: 'medium',
-    },
-    {
-      id: '7',
-      type: 'mission',
-      title: 'Mission Terminée',
-      message: 'La mission "Réunion Provinciale Muyinga" a été marquée comme terminée.',
-      timestamp: '2026-01-17 17:00',
-      isRead: true,
-      priority: 'low',
-    },
-  ]);
-
-  const unreadCount = notifications.filter(n => !n.isRead).length;
-
-  const filteredNotifications = notifications.filter(n => {
+  const filteredNotifications = useMemo(() => notifications.filter(n => {
     if (filter === 'all') return true;
     if (filter === 'unread') return !n.isRead;
     return n.type === filter;
-  });
+  }), [filter, notifications]);
 
-  const markAsRead = (id: string) => {
-    setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, isRead: true } : n
-    ));
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+  const handleMarkAllAsRead = () => {
+    markAllAsRead();
     toast.success("All notifications marked as read");
   };
 
   const deleteNotification = (id: string) => {
-    setNotifications(notifications.filter(n => n.id !== id));
+    removeNotification(id);
     toast.success("Notification supprimée");
   };
 
-  const handleAction = (notification: Notification) => {
+  const handleAction = (notification: { id: string; actionUrl?: string }) => {
     markAsRead(notification.id);
     if (notification.actionUrl) {
       navigate(notification.actionUrl);
@@ -174,8 +92,24 @@ export default function Notifications() {
     }
   };
 
+  // Map user role to DashboardLayout role
+  const getUserRole = (): UserRole => {
+    if (!authUser?.role) return 'employee';
+    const roleMap: Record<string, UserRole> = {
+      'ADMIN': 'admin',
+      'DIRECTOR': 'director',
+      'DIRECTOR_GENERAL': 'director',
+      'HEAD_OF_DEPARTMENT': 'department_head',
+      'DEPARTMENT_HEAD': 'department_head',
+      'FINANCE': 'finance',
+      'HR': 'hr',
+      'EMPLOYEE': 'employee',
+    };
+    return roleMap[authUser.role] || 'employee';
+  };
+
   return (
-    <DashboardLayout userRole="employee">
+    <DashboardLayout userRole={getUserRole()}>
       <div className="space-y-6 max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -194,7 +128,7 @@ export default function Notifications() {
           <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
-              onClick={markAllAsRead}
+              onClick={handleMarkAllAsRead}
               disabled={unreadCount === 0}
             >
               <CheckCheck className="h-4 w-4 mr-2" />
@@ -276,7 +210,7 @@ export default function Notifications() {
                         {notification.message}
                       </p>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span>{notification.timestamp}</span>
+                        <span>{formatNotificationTime(notification.timestamp)}</span>
                         <Badge variant="outline" className="text-xs">
                           {getTypeBadge(notification.type)}
                         </Badge>

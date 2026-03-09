@@ -4,6 +4,7 @@ import { MissionCard } from "@/components/mission-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -21,43 +22,83 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { 
-  mockMissions, 
   currentUser, 
   formatCurrency, 
   formatDate,
   missionTypes,
 } from "@/lib/mockData";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { missionService, MissionAssignment } from "@/services/mission.service";
+import { useNotifications } from "@/hooks/use-notifications";
 
 export default function EmployeeDashboard() {
   const navigate = useNavigate();
+  const { addAppNotification } = useNotifications();
+  const [assignments, setAssignments] = useState<MissionAssignment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user assignments on component mount
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      try {
+        setLoading(true);
+        const data = await missionService.getUserAssignments();
+        setAssignments(data);
+      } catch (error) {
+        console.error('Error fetching assignments:', error);
+        toast.error('Failed to load assignments');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAssignments();
+  }, []);
   
-  // Filter missions for current user
-  const pendingMissions = mockMissions.filter(
-    m => (m.status === 'pending' || m.status === 'assigned')
+  // Filter assignments by status
+  const pendingAssignments = assignments.filter(
+    a => a.assignmentStatus === 'PENDING'
   );
-  const activeMissions = mockMissions.filter(
-    m => m.status === 'in_progress' || m.status === 'accepted'
+  const activeAssignments = assignments.filter(
+    a => a.assignmentStatus === 'ACCEPTED'
   );
-  const completedMissions = mockMissions.filter(
-    m => m.status === 'completed'
+  const completedAssignments = assignments.filter(
+    a => a.assignmentStatus === 'ACCEPTED' && a.mission?.status === 'COMPLETED'
   );
 
-  const handleAccept = (mission: typeof mockMissions[0]) => {
-    toast.success(`Mission "${mission.title}" accepted`, {
-      description: "You will receive a confirmation email.",
-    });
+  const handleAccept = async (assignment: MissionAssignment) => {
+    try {
+      await missionService.respondToAssignment(assignment.id, 'ACCEPTED');
+      addAppNotification({
+        type: 'approval',
+        title: 'Mission Accepted',
+        message: `An employee accepted mission "${assignment.mission?.title || 'N/A'}".`,
+        actionUrl: assignment.mission?.id ? `/employee/mission/${assignment.mission.id}` : undefined,
+        priority: 'medium',
+      });
+      // Refresh assignments
+      const data = await missionService.getUserAssignments();
+      setAssignments(data);
+      toast.success("Assignment accepted successfully");
+    } catch (error) {
+      console.error('Error accepting assignment:', error);
+      toast.error("Failed to accept assignment");
+    }
   };
 
-  const handleDecline = (mission: typeof mockMissions[0]) => {
-    toast.error(`Mission "${mission.title}" declined`, {
-      description: "The system will search for another employee.",
-    });
-  };
-
-  const handleSubstitute = (mission: typeof mockMissions[0]) => {
-    navigate(`/employee/substitution/${mission.id}`);
+  const handleDecline = async (assignmentId: string) => {
+    try {
+      await missionService.respondToAssignment(assignmentId, 'DECLINED');
+      // Refresh assignments
+      const data = await missionService.getUserAssignments();
+      setAssignments(data);
+      toast.success("Assignment declined successfully");
+    } catch (error) {
+      console.error('Error declining assignment:', error);
+      toast.error("Failed to decline assignment");
+    }
   };
 
   return (
@@ -86,13 +127,13 @@ export default function EmployeeDashboard() {
         />
         <StatsCard
           title="Pending"
-          value={pendingMissions.length}
+          value={pendingAssignments.length}
           subtitle="Response required"
           icon={Clock}
         />
         <StatsCard
           title="Completed"
-          value={completedMissions.length}
+          value={completedAssignments.length}
           subtitle="Reports submitted"
           icon={CheckCircle2}
           variant="secondary"
@@ -106,23 +147,54 @@ export default function EmployeeDashboard() {
             <h2 className="text-lg font-semibold">New Assignments</h2>
             <StatusBadge 
               status="pending" 
-              label={`${pendingMissions.length} pending`} 
+              label={`${pendingAssignments.length} pending`} 
             />
           </div>
 
-          {pendingMissions.length > 0 ? (
+          {loading ? (
+            <Card className="card-gov">
+              <CardContent className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </CardContent>
+            </Card>
+          ) : pendingAssignments.length > 0 ? (
             <div className="grid gap-4">
-              {pendingMissions.map((mission) => (
-                <MissionCard
-                  key={mission.id}
-                  mission={mission}
-                  variant="full"
-                  showActions
-                  onAccept={handleAccept}
-                  onDecline={handleDecline}
-                  onSubstitute={handleSubstitute}
-                  onViewDetails={() => navigate(`/employee/mission/${mission.id}`)}
-                />
+              {pendingAssignments.map((assignment) => (
+                <Card key={assignment.id} className="card-gov hover:shadow-md transition-shadow">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium">{assignment.mission?.title || 'N/A'}</h3>
+                      <span className="text-sm text-muted-foreground">
+                        {assignment.mission?.startDate ? formatDate(assignment.mission.startDate) : 'N/A'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {assignment.mission?.destination || 'N/A'}
+                    </p>
+                    {assignment.assignmentReason && (
+                      <p className="text-sm">
+                        <strong>Reason:</strong> {assignment.assignmentReason}
+                      </p>
+                    )}
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleAccept(assignment)}
+                        className="flex-1"
+                      >
+                        Accept
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleDecline(assignment.id)}
+                        className="flex-1"
+                      >
+                        Decline
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           ) : (
@@ -140,33 +212,122 @@ export default function EmployeeDashboard() {
               </CardContent>
             </Card>
           )}
+          {/* Recent History */}
+      <Card className="card-gov mt-6">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-semibold">
+              Mission History
+            </CardTitle>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => navigate('/employee/missions')}
+            >
+              View All
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Mission</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Destination</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Budget</TableHead>
+                <TableHead>Assignment</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {assignments.slice(0, 5).map((assignment) => (
+                <TableRow 
+                  key={assignment.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => assignment.mission?.id && navigate(`/employee/mission/${assignment.mission.id}`)}
+                >
+                  <TableCell className="font-medium">
+                    <div>
+                      <p className="font-medium">{assignment.mission?.title || 'N/A'}</p>
+                      <p className="text-xs text-muted-foreground">{assignment.id}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell>{assignment.mission?.status || 'N/A'}</TableCell>
+                  <TableCell>{assignment.mission?.destination || 'N/A'}</TableCell>
+                  <TableCell>{assignment.mission?.startDate ? formatDate(assignment.mission.startDate) : 'N/A'}</TableCell>
+                  <TableCell>{assignment.mission?.estimatedBudget ? formatCurrency(Number(assignment.mission.estimatedBudget)) : 'N/A'}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{assignment.assignmentStatus}</Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
         </div>
 
         {/* Active Missions & Quick Stats */}
         <div className="space-y-6">
-          {/* Active Mission */}
-          {activeMissions.length > 0 && (
+          {/* Active Assignments */}
+          {activeAssignments.length > 0 && (
+            <Card className="card-gov">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center justify-between">
+                  <span>Active Assignment</span>
+                  <span className="text-sm font-normal text-muted-foreground">
+                    {activeAssignments.length} active
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {activeAssignments.slice(0, 2).map((assignment) => (
+                  <div key={assignment.id} className="p-3 bg-muted/30 rounded-lg">
+                    <h4 className="font-medium text-sm mb-1">{assignment.mission?.title || 'N/A'}</h4>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      {assignment.mission?.destination || 'N/A'}
+                    </p>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="w-full h-7" 
+                      onClick={() => assignment.mission?.id && navigate(`/employee/mission/${assignment.mission.id}`)}
+                    >
+                      View Details <ChevronRight className="ml-1 h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Active Assignments */}
+          {activeAssignments.length > 0 && (
             <Card className="card-gov">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-status-active animate-pulse" />
-                  Active Mission
+                  Active Assignment
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {activeMissions[0] && (
+                {activeAssignments[0] && (
                   <div className="space-y-3">
-                    <p className="font-medium">{activeMissions[0].title}</p>
+                    <p className="font-medium">{activeAssignments[0].mission?.title || 'N/A'}</p>
                     <div className="text-sm text-muted-foreground space-y-1">
-                      <p>📍 {activeMissions[0].destination}</p>
-                      <p>📅 {formatDate(activeMissions[0].startDate)} - {formatDate(activeMissions[0].endDate)}</p>
-                      <p>💰 {formatCurrency(activeMissions[0].budget)}</p>
+                      <p>📍 {activeAssignments[0].mission?.destination || 'N/A'}</p>
+                      <p>📅 {activeAssignments[0].mission?.startDate && activeAssignments[0].mission?.endDate ? 
+                        `${formatDate(activeAssignments[0].mission.startDate)} - ${formatDate(activeAssignments[0].mission.endDate)}` : 'N/A'
+                      }</p>
+                      <p>💰 {activeAssignments[0].mission?.estimatedBudget ? formatCurrency(Number(activeAssignments[0].mission.estimatedBudget)) : 'N/A'}</p>
                     </div>
                     <Button 
                       variant="outline" 
                       size="sm" 
                       className="w-full mt-2"
-                      onClick={() => navigate(`/employee/mission/${activeMissions[0].id}`)}
+                      onClick={() => activeAssignments[0].mission?.id && navigate(`/employee/mission/${activeAssignments[0].mission.id}`)}
                     >
                       View Details
                       <ChevronRight className="h-4 w-4 ml-1" />
@@ -226,7 +387,7 @@ export default function EmployeeDashboard() {
           </Card>
 
           {/* Quick Actions */}
-          <Card className="card-gov">
+          {/* <Card className="card-gov">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold">
                 Quick Actions
@@ -255,65 +416,9 @@ export default function EmployeeDashboard() {
                 📋 View history
               </Button>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
       </div>
-
-      {/* Recent History */}
-      <Card className="card-gov mt-6">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-semibold">
-              Mission History
-            </CardTitle>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => navigate('/employee/missions')}
-            >
-              View All
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Mission</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Destination</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Budget</TableHead>
-                <TableHead>Statut</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {mockMissions.slice(0, 5).map((mission) => (
-                <TableRow 
-                  key={mission.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => navigate(`/employee/mission/${mission.id}`)}
-                >
-                  <TableCell className="font-medium">
-                    <div>
-                      <p className="font-medium">{mission.title}</p>
-                      <p className="text-xs text-muted-foreground">{mission.id}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>{missionTypes[mission.type]}</TableCell>
-                  <TableCell>{mission.destination}</TableCell>
-                  <TableCell>{formatDate(mission.startDate)}</TableCell>
-                  <TableCell>{formatCurrency(mission.budget)}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={mission.status} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
     </DashboardLayout>
   );
 }

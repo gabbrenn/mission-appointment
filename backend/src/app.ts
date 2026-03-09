@@ -4,9 +4,11 @@ import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
 import userRoutes from "./routes/user.routes";
 import missionType from "./routes/missiontype.routes";
+import missionRoutes from "./routes/mission.routes";
 import departmentRoutes from "./routes/department.routes";
 import { errorHandler } from "./middleware/errorHandler";
 import authRoutes from "./routes/auth.routes";
+import { requestResponseLogger } from "./middleware/requestResponseLogger";
 const app = express();
 
 // CORS configuration - Allow frontend to access the API
@@ -23,6 +25,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(requestResponseLogger);
 
 // Swagger documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
@@ -37,7 +40,8 @@ app.get("/health", (req, res) => {
 });
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/mission-type",missionType)
+app.use("/api/mission-type",missionType);
+app.use("/api/missions", missionRoutes);
 app.use("/api/departments", departmentRoutes);
 
 // Error handler (must be last)

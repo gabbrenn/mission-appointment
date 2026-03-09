@@ -24,72 +24,92 @@ import {
   User,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { formatCurrency, departments, mockUsers, burundiCities, cities } from "@/lib/mockData";
+import { useState, useEffect } from "react";
+import { formatCurrency } from "@/lib/mockData";
+import { missionService, CreateMissionDto } from "@/services/mission.service";
+import { departmentService, Department } from "@/services/department.service";
 import { toast } from "sonner";
+import { useNotifications } from "@/hooks/use-notifications";
 
 type Step = 1 | 2 | 3 | 4;
 
 interface MissionForm {
   // Step 1: Details
   title: string;
-  type: string;
   destination: string;
   startDate: string;
   endDate: string;
   description: string;
+  urgencyLevel: 'LOW' | 'MEDIUM' | 'HIGH';
   // Step 2: Requirements
-  department: string;
+  departmentId: string;
   requiredSkills: string[];
   // Step 3: Budget
-  transport: number;
-  accommodation: number;
-  perDiem: number;
-  other: number;
+  estimatedBudget: number;
   budgetCode: string;
+  // Additional budget breakdown
+  transport?: number;
+  accommodation?: number;
+  perDiem?: number;
+  other?: number;
   // Step 4: Review (uses all above)
 }
 
 export default function CreateMission() {
   const navigate = useNavigate();
+  const { addAppNotification } = useNotifications();
   const [step, setStep] = useState<Step>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [autoAssigning, setAutoAssigning] = useState(false);
   
   const [form, setForm] = useState<MissionForm>({
     title: '',
-    type: '',
     destination: '',
     startDate: '',
     endDate: '',
     description: '',
-    department: '',
+    urgencyLevel: 'MEDIUM',
+    departmentId: '',
     requiredSkills: [],
+    estimatedBudget: 0,
+    budgetCode: '',
     transport: 0,
     accommodation: 0,
     perDiem: 0,
     other: 0,
-    budgetCode: '',
   });
 
   const [newSkill, setNewSkill] = useState('');
 
-  const missionTypes = [
-    { value: 'inspection', label: 'Inspection' },
-    { value: 'formation', label: 'Formation' },
-    { value: 'reunion', label: 'Réunion' },
-    { value: 'audit', label: 'Audit' },
-    { value: 'livraison', label: 'Livraison' },
-  ];
+  // Calculate total budget from all components
+  const totalBudget = (form.transport || 0) + (form.accommodation || 0) + (form.perDiem || 0) + (form.other || 0);
+  form.estimatedBudget = totalBudget;
+  // Fetch mission types and departments on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [departmentsData] = await Promise.all([
+          departmentService.getAllDepartments(),
+        ]);
+        setDepartments(departmentsData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast.error('Failed to load departments');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const availableSkills = [
     'Audit', 'Formation', 'Inspection', 'Logistique', 
     'Communication', 'Comptabilité', 'Gestion de Projet',
+    'Leadership', 'Négociation', 'Analyse', 'Rédaction',
+    'Présentation', 'Organisation', 'Planification'
   ];
-
-  const totalBudget = form.transport + form.accommodation + form.perDiem + form.other;
-
-  // Auto-assigned employee based on algorithm (mock)
-  const suggestedEmployee = mockUsers.find(u => u.role === 'employee' && u.isAvailable);
 
   const addSkill = (skill: string) => {
     if (!form.requiredSkills.includes(skill)) {
@@ -104,7 +124,7 @@ export default function CreateMission() {
   const validateStep = (currentStep: Step): boolean => {
     switch (currentStep) {
       case 1:
-        if (!form.title || !form.type || !form.destination || !form.startDate || !form.endDate) {
+        if (!form.title || !form.destination || !form.startDate || !form.endDate) {
           toast.error("Please fill in all required fields");
           return false;
         }
@@ -114,20 +134,20 @@ export default function CreateMission() {
         }
         return true;
       case 2:
-        if (!form.department) {
+        if (!form.departmentId) {
           toast.error("Please select a department");
           return false;
         }
         return true;
       case 3:
-        if (totalBudget <= 0) {
-          toast.error("Total budget must be greater than 0");
+        if (form.estimatedBudget <= 0) {
+          toast.error("Budget must be greater than 0");
           return false;
         }
-        if (!form.budgetCode) {
-          toast.error("Please enter a budget code");
-          return false;
-        }
+        // if (!form.budgetCode) {
+        //   toast.error("Please enter a budget code");
+        //   return false;
+        // }
         return true;
       default:
         return true;
@@ -146,9 +166,57 @@ export default function CreateMission() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    toast.success("Mission created successfully");
-    navigate('/department');
+    try {
+      // Use calculated total budget if budget breakdown is provided
+      const finalEstimatedBudget = totalBudget > 0 ? totalBudget : form.estimatedBudget;
+      
+      // Create mission
+      const missionData: CreateMissionDto = {
+        title: form.title,
+        description: form.description,
+        destination: form.destination,
+        startDate: form.startDate,
+        endDate: form.endDate,
+        departmentId: form.departmentId,
+        urgencyLevel: form.urgencyLevel,
+        estimatedBudget: finalEstimatedBudget,
+        budgetCode: form.budgetCode || undefined,
+        requiredQualifications: form.requiredSkills,
+      };
+
+      const mission = await missionService.createMission(missionData);
+      toast.success("Mission created successfully");
+      addAppNotification({
+        type: 'mission',
+        title: 'New Mission Created',
+        message: `Mission "${mission.title}" has been created and is ready for assignment.`,
+        actionUrl: `/department/approval/${mission.id}`,
+        priority: 'high',
+      });
+
+      // Auto-assign mission
+      setAutoAssigning(true);
+      try {
+        const assignments = await missionService.autoAssignMission(mission.id, 1);
+        if (assignments.length > 0) {
+          toast.success(`Mission auto-assigned to ${assignments[0].employee.firstName} ${assignments[0].employee.lastName}`);
+        } else {
+          toast.info("Mission created but no eligible employees found for auto-assignment");
+        }
+      } catch (assignError) {
+        console.error('Auto-assignment failed:', assignError);
+        toast.warning("Mission created but auto-assignment failed. Please assign manually.");
+      } finally {
+        setAutoAssigning(false);
+      }
+
+      navigate('/department');
+    } catch (error) {
+      console.error('Error creating mission:', error);
+      toast.error("Failed to create mission");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const steps = [
@@ -223,43 +291,14 @@ export default function CreateMission() {
                 />
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Mission Type *</Label>
-                  <Select 
-                    value={form.type} 
-                    onValueChange={(value) => setForm({ ...form, type: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {missionTypes.map(type => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
+              <div className="grid gap-4 md:grid-cols-2">              
                 <div className="space-y-2">
                   <Label>Destination *</Label>
-                  <Select 
-                    value={form.destination} 
-                    onValueChange={(value) => setForm({ ...form, destination: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a city" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {cities.map(city => (
-                        <SelectItem key={city} value={city}>
-                          {city}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    placeholder="Enter destination city"
+                    value={form.destination}
+                    onChange={(e) => setForm({ ...form, destination: e.target.value })}
+                  />
                 </div>
               </div>
 
@@ -306,18 +345,18 @@ export default function CreateMission() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label>Département *</Label>
+                <Label>Department *</Label>
                 <Select 
-                  value={form.department} 
-                  onValueChange={(value) => setForm({ ...form, department: value })}
+                  value={form.departmentId} 
+                  onValueChange={(value) => setForm({ ...form, departmentId: value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionnez un département" />
                   </SelectTrigger>
                   <SelectContent>
                     {departments.map(dept => (
-                      <SelectItem key={dept} value={dept}>
-                        {dept}
+                      <SelectItem key={dept.id} value={dept.id}>
+                        {dept.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -414,7 +453,7 @@ export default function CreateMission() {
                   </span>
                 </div>
               </div>
-
+{/* 
               <div className="space-y-2">
                 <Label>Budget Code *</Label>
                 <Input
@@ -422,7 +461,7 @@ export default function CreateMission() {
                   value={form.budgetCode}
                   onChange={(e) => setForm({ ...form, budgetCode: e.target.value })}
                 />
-              </div>
+              </div> */}
             </CardContent>
           </Card>
         )}
@@ -447,10 +486,6 @@ export default function CreateMission() {
                         <span className="font-medium">{form.title}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Type</span>
-                        <Badge>{form.type}</Badge>
-                      </div>
-                      <div className="flex justify-between">
                         <span className="text-muted-foreground">Destination</span>
                         <span className="flex items-center gap-1">
                           <MapPin className="h-3 w-3" />
@@ -466,7 +501,7 @@ export default function CreateMission() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Department</span>
-                        <span>{form.department}</span>
+                        <span>{departments.find(d => d.id === form.departmentId)?.name || 'Unknown'}</span>
                       </div>
                     </div>
                   </div>
@@ -522,40 +557,7 @@ export default function CreateMission() {
               </CardContent>
             </Card>
 
-            {/* Suggested Employee */}
-            {suggestedEmployee && (
-              <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5 text-green-600" />
-                    Employee Suggested by Algorithm
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-lg font-semibold text-primary">
-                        {suggestedEmployee.firstName[0]}{suggestedEmployee.lastName[0]}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium">
-                        {suggestedEmployee.firstName} {suggestedEmployee.lastName}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {suggestedEmployee.department} • Fairness Score: {suggestedEmployee.fairnessScore}%
-                      </p>
-                    </div>
-                    <div className="ml-auto">
-                      <Badge className="bg-green-500">Available</Badge>
-                    </div>
-                  </div>
-                  <p className="text-sm text-green-700 dark:text-green-300 mt-3">
-                    This employee was selected based on fairness and qualification criteria.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+            {/* Auto-assignment will show suggested employees after mission creation */}
           </div>
         )}
 

@@ -360,6 +360,52 @@ router.post("/:id/skills", auth_1.authenticate, (0, auth_1.authorizeSelfOrRoles)
 router.delete("/:id/skills/:skillId", auth_1.authenticate, (0, auth_1.authorizeSelfOrRoles)(["ADMIN", "HR"]), (req, res, next) => userController.removeUserSkill(req, res, next));
 /**
  * @swagger
+ * /api/users/{id}/skills/bulk:
+ *   put:
+ *     summary: Bulk update user skills
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: User ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - skillNames
+ *             properties:
+ *               skillNames:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of skill names to replace current skills
+ *     responses:
+ *       200:
+ *         description: Skills updated successfully
+ *       400:
+ *         description: Invalid skill names
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: User not found
+ */
+router.put("/:id/skills/bulk", auth_1.authenticate, (0, auth_1.authorizeSelfOrRoles)(["ADMIN", "HR"]), [
+    (0, express_validator_1.body)("skillNames").isArray().withMessage("skillNames must be an array"),
+    (0, express_validator_1.body)("skillNames.*").isString().withMessage("Each skill name must be a string"),
+], validateRequest, (req, res, next) => userController.bulkUpdateUserSkills(req, res, next));
+/**
+ * @swagger
  * /api/users/login-history:
  *   get:
  *     summary: Get user login history

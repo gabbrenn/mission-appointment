@@ -31,18 +31,44 @@ import {
   Moon,
   Monitor,
   Check,
+  Loader2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { userService } from "@/services/user.service";
+import { UserRole } from "@/lib/mockData";
+
+interface UserData {
+  id: string;
+  employeeId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  role: string;
+  position?: string;
+  departmentId?: string;
+  department?: {
+    id: string;
+    name: string;
+    code: string;
+  };
+}
 
 export default function Settings() {
+  const { user: authUser } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  
   const [profile, setProfile] = useState({
-    firstName: 'Jean',
-    lastName: 'Ndayisaba',
-    email: 'jean.ndayisaba@rnp.bi',
-    phone: '+257 79 123 456',
-    department: 'Operations',
-    position: 'Agent Postal',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    department: '',
+    position: '',
   });
 
   const [notifications, setNotifications] = useState({
@@ -70,8 +96,60 @@ export default function Settings() {
     sessionTimeout: '30',
   });
 
-  const handleSaveProfile = () => {
-    toast.success("Profile updated successfully");
+  // Fetch user data on component mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!authUser?.id) return;
+      
+      try {
+        setLoading(true);
+        const response = await userService.getUserById(authUser.id) as unknown as UserData;
+        setUserData(response);
+        
+        // Update profile state with fetched data
+        setProfile({
+          firstName: response.firstName || '',
+          lastName: response.lastName || '',
+          email: response.email || '',
+          phone: response.phone || '',
+          department: response.department?.name || '',
+          position: response.position || '',
+        });
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        toast.error("Failed to load user data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [authUser]);
+
+  const handleSaveProfile = async () => {
+    if (!userData?.id) return;
+    
+    try {
+      setSaving(true);
+      await userService.updateUser(userData.id, {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        email: profile.email,
+        phone: profile.phone || undefined,
+        position: profile.position || undefined,
+      });
+      
+      // Refresh user data
+      const updatedUser = await userService.getUserById(userData.id) as unknown as UserData;
+      setUserData(updatedUser);
+      
+      toast.success("Profile updated successfully");
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error("Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSaveNotifications = () => {
@@ -92,8 +170,24 @@ export default function Settings() {
     { value: 'system', label: 'Système', icon: Monitor },
   ];
 
+  // Map user role to DashboardLayout role
+  const getUserRole = (): UserRole => {
+    if (!authUser?.role) return 'employee';
+    const roleMap: Record<string, UserRole> = {
+      'ADMIN': 'admin',
+      'DIRECTOR': 'director',
+      'DIRECTOR_GENERAL': 'director',
+      'HEAD_OF_DEPARTMENT': 'department_head',
+      'DEPARTMENT_HEAD': 'department_head',
+      'FINANCE': 'finance',
+      'HR': 'hr',
+      'EMPLOYEE': 'employee',
+    };
+    return roleMap[authUser.role] || 'employee';
+  };
+
   return (
-    <DashboardLayout userRole="employee">
+    <DashboardLayout userRole={getUserRole()}>
       <div className="space-y-6 max-w-4xl mx-auto">
         {/* Header */}
         <div>
@@ -136,97 +230,128 @@ export default function Settings() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Avatar */}
-                <div className="flex items-center gap-6">
-                  <div className="relative">
-                    <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center text-primary text-3xl font-bold">
-                      {profile.firstName.charAt(0)}{profile.lastName.charAt(0)}
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <>
+                    {/* Avatar */}
+                    <div className="flex items-center gap-6">
+                      <div className="relative">
+                        <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center text-primary text-3xl font-bold">
+                          {profile.firstName.charAt(0)}{profile.lastName.charAt(0)}
+                        </div>
+                        <Button 
+                          size="icon" 
+                          variant="outline" 
+                          className="absolute bottom-0 right-0 h-8 w-8 rounded-full"
+                        >
+                          <Camera className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg">
+                          {profile.firstName} {profile.lastName}
+                        </h3>
+                        {profile.position && (
+                          <p className="text-muted-foreground">{profile.position}</p>
+                        )}
+                        {profile.department && (
+                          <Badge variant="outline" className="mt-1">{profile.department}</Badge>
+                        )}
+                        {userData?.role && (
+                          <Badge variant="secondary" className="mt-1 ml-2">{userData.role}</Badge>
+                        )}
+                      </div>
                     </div>
-                    <Button 
-                      size="icon" 
-                      variant="outline" 
-                      className="absolute bottom-0 right-0 h-8 w-8 rounded-full"
-                    >
-                      <Camera className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg">
-                      {profile.firstName} {profile.lastName}
-                    </h3>
-                    <p className="text-muted-foreground">{profile.position}</p>
-                    <Badge variant="outline" className="mt-1">{profile.department}</Badge>
-                  </div>
-                </div>
 
-                <Separator />
+                    <Separator />
 
-                {/* Form Fields */}
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">Prénom</Label>
-                    <Input
-                      id="firstName"
-                      value={profile.firstName}
-                      onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Nom</Label>
-                    <Input
-                      id="lastName"
-                      value={profile.lastName}
-                      onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        className="pl-10"
-                        value={profile.email}
-                        onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                      />
+                    {/* Form Fields */}
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName">Prénom</Label>
+                        <Input
+                          id="firstName"
+                          value={profile.firstName}
+                          onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="lastName">Nom</Label>
+                        <Input
+                          id="lastName"
+                          value={profile.lastName}
+                          onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="email"
+                            type="email"
+                            className="pl-10"
+                            value={profile.email}
+                            onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Téléphone</Label>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="phone"
+                            className="pl-10"
+                            value={profile.phone}
+                            onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                            placeholder="+257 79 123 456"
+                          />
+                        </div>
+                      </div>
+                      {profile.department && (
+                        <div className="space-y-2">
+                          <Label>Département</Label>
+                          <div className="relative">
+                            <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              className="pl-10"
+                              value={profile.department}
+                              disabled
+                            />
+                          </div>
+                        </div>
+                      )}
+                      <div className="space-y-2">
+                        <Label>Poste</Label>
+                        <Input 
+                          value={profile.position} 
+                          onChange={(e) => setProfile({ ...profile, position: e.target.value })}
+                          placeholder="Your position"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Téléphone</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="phone"
-                        className="pl-10"
-                        value={profile.phone}
-                        onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Département</Label>
-                    <div className="relative">
-                      <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        className="pl-10"
-                        value={profile.department}
-                        disabled
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Poste</Label>
-                    <Input value={profile.position} disabled />
-                  </div>
-                </div>
 
-                <div className="flex justify-end">
-                  <Button onClick={handleSaveProfile}>
-                    <Save className="h-4 w-4 mr-2" />
-                    Enregistrer
-                  </Button>
-                </div>
+                    <div className="flex justify-end">
+                      <Button onClick={handleSaveProfile} disabled={saving}>
+                        {saving ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-4 w-4 mr-2" />
+                            Enregistrer
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

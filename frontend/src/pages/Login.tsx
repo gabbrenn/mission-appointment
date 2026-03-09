@@ -30,6 +30,7 @@ export default function Login() {
       const roleRoutes: Record<string, string> = {
         ADMIN: '/admin',
         DIRECTOR_GENERAL: '/director',
+        HEAD_OF_DEPARTMENT: '/department',
         DEPARTMENT_HEAD: '/department',
         FINANCE: '/finance',
         HR: '/hr',

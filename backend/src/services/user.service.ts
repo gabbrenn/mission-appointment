@@ -1,4 +1,5 @@
 import { UserRepository } from "../repositories/user.repository";
+import { DepartmentRepository } from "../repositories/department.repository";
 import { hashPassword } from "../utils/password";
 import { ApiError } from "../utils/ApiError";
 import { AvailabilityStatus, Prisma, Role } from "@prisma/client";
@@ -6,9 +7,11 @@ import { CreateUserDto, RegisterUserDto, UpdateAvailabilityDto, UpdateUserDto, U
 
 export class UserService {
     private userRepository: UserRepository;
+    private departmentRepository: DepartmentRepository;
 
     constructor() {
         this.userRepository = new UserRepository();
+        this.departmentRepository = new DepartmentRepository();
     }
 
     async registerUser(data: RegisterUserDto) {
@@ -22,8 +25,20 @@ export class UserService {
         await this.ensureUserUnique(data.email, employeeId);
         
         // Validate HEAD_OF_DEPARTMENT role constraints
+        // Department heads should not have departmentId - they're linked through departmentLed relationship
         if (data.role === Role.HEAD_OF_DEPARTMENT && data.departmentId) {
-            throw new ApiError("Users with HEAD_OF_DEPARTMENT role cannot be assigned to a department as regular employees. They should be assigned as department heads.", 400);
+            throw new ApiError("Users with HEAD_OF_DEPARTMENT role cannot be assigned to a department as regular employees. They should be assigned as department heads via the department's headId field.", 400);
+        }
+
+        // Validate department assignment
+        if (data.departmentId) {
+            const department = await this.departmentRepository.getById(data.departmentId);
+            if (!department) {
+                throw new ApiError("Department not found", 404);
+            }
+            if (department.status !== 'ACTIVE') {
+                throw new ApiError("Cannot assign user to inactive department", 400);
+            }
         }
         
         const hashedPassword = await hashPassword(data.password);
@@ -73,11 +88,28 @@ export class UserService {
 
         // Validate role and department changes
         const newRole = data.role || existing.role;
-        const newDepartmentId = data.departmentId !== undefined ? data.departmentId : existing.departmentId;
+        let newDepartmentId = data.departmentId !== undefined ? data.departmentId : existing.departmentId;
 
-        // If user has or is being changed to HEAD_OF_DEPARTMENT role, they cannot have departmentId
-        if (newRole === Role.HEAD_OF_DEPARTMENT && newDepartmentId) {
-            throw new ApiError("Users with HEAD_OF_DEPARTMENT role cannot be assigned to a department as regular employees. They should be assigned as department heads.", 400);
+        // Handle HEAD_OF_DEPARTMENT role transitions
+        if (newRole === Role.HEAD_OF_DEPARTMENT) {
+            // If promoting to HEAD_OF_DEPARTMENT and they have a departmentId, automatically clear it
+            if (newDepartmentId) {
+                console.log(`Automatically clearing departmentId for user ${id} being promoted to HEAD_OF_DEPARTMENT role`);
+                newDepartmentId = null;
+                data.departmentId = undefined;
+            }
+        }
+
+        // Validate department assignment for non-heads
+        if (data.departmentId !== undefined && data.departmentId !== null && data.departmentId !== '') {
+            // Check if department exists and is active
+            const department = await this.departmentRepository.getById(data.departmentId);
+            if (!department) {
+                throw new ApiError("Department not found", 404);
+            }
+            if (department.status !== 'ACTIVE') {
+                throw new ApiError("Cannot assign user to inactive department", 400);
+            }
         }
 
         // If user is currently head of a department and trying to change role or assign to department
@@ -117,11 +149,25 @@ export class UserService {
 
     async addUserSkill(userId: string, data: UserSkillDto) {
         await this.getUserById(userId);
-        const exists = await this.userRepository.findUserSkillByName(userId, data.skillName);
+        
+        // Validate skill name
+        if (!data.skillName || data.skillName.trim().length === 0) {
+            throw new ApiError("Skill name is required", 400);
+        }
+        
+        if (data.skillName.trim().length > 100) {
+            throw new ApiError("Skill name cannot exceed 100 characters", 400);
+        }
+        
+        // Normalize skill name (trim and convert to proper case)
+        const normalizedSkillName = data.skillName.trim();
+        
+        const exists = await this.userRepository.findUserSkillByName(userId, normalizedSkillName);
         if (exists) {
             throw new ApiError("Skill already exists for user", 409);
         }
-        return this.userRepository.addUserSkill(userId, data.skillName);
+        
+        return this.userRepository.addUserSkill(userId, normalizedSkillName);
     }
 
     async removeUserSkill(userId: string, skillId: string) {
@@ -131,6 +177,44 @@ export class UserService {
             throw new ApiError("Skill not found for user", 404);
         }
         return { deleted: result.count };
+    }
+
+    async bulkUpdateUserSkills(userId: string, skillNames: string[]) {
+        await this.getUserById(userId);
+        
+        // Validate skill names
+        const validSkills = skillNames
+            .map(name => name.trim())
+            .filter(name => name.length > 0 && name.length <= 100)
+            .filter((name, index, arr) => arr.indexOf(name) === index); // Remove duplicates
+        
+        if (validSkills.length === 0) {
+            throw new ApiError("At least one valid skill name is required", 400);
+        }
+        
+        // Get current skills
+        const currentSkills = await this.userRepository.getUserSkills(userId);
+        const currentSkillNames = currentSkills.map(skill => skill.skillName);
+        
+        // Find skills to add and remove
+        const skillsToAdd = validSkills.filter(skill => !currentSkillNames.includes(skill));
+        const skillsToRemove = currentSkills.filter(skill => !validSkills.includes(skill.skillName));
+        
+        // Remove old skills
+        for (const skill of skillsToRemove) {
+            await this.userRepository.removeUserSkill(userId, skill.id);
+        }
+        
+        // Add new skills
+        for (const skillName of skillsToAdd) {
+            await this.userRepository.addUserSkill(userId, skillName);
+        }
+        
+        return {
+            added: skillsToAdd.length,
+            removed: skillsToRemove.length,
+            total: validSkills.length
+        };
     }
 
     private async ensureUserUnique(email: string, employeeId: string) {

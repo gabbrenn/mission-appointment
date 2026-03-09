@@ -126,4 +126,20 @@ export class UserController {
             next(error);
         }
     }
+
+    async bulkUpdateUserSkills(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            const userId = req.params.id as string;
+            const { skillNames } = req.body as { skillNames: string[] };
+            
+            if (!Array.isArray(skillNames)) {
+                throw new ApiError("skillNames must be an array", 400);
+            }
+            
+            const result = await this.userService.bulkUpdateUserSkills(userId, skillNames);
+            return ApiResponseHelper.success(res, result, "Skills updated successfully");
+        } catch (error) {
+            next(error);
+        }
+    }
 }

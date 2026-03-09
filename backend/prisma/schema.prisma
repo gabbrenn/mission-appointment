@@ -152,7 +152,7 @@ model MissionType {
   status                 String   @default("ACTIVE")
 
   // Relations
-  missions Mission[]
+  // missions Mission[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -173,8 +173,8 @@ model Mission {
   status                 MissionStatus @default(DRAFT)
 
   // Relations
-  missionType   MissionType @relation(fields: [missionTypeId], references: [id])
-  missionTypeId String      @db.Uuid
+  //missionType   MissionType @relation(fields: [missionTypeId], references: [id])
+  //missionTypeId String      @db.Uuid
 
   department   Department @relation(fields: [departmentId], references: [id])
   departmentId String     @db.Uuid

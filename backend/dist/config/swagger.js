@@ -23,6 +23,10 @@ const options = {
                 url: "http://localhost:3000",
                 description: "Development server",
             },
+            {
+                url: "https://mission-appointment.onrender.com",
+                description: "Production server",
+            },
         ],
         components: {
             securitySchemes: {

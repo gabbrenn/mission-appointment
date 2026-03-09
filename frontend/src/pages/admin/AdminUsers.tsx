@@ -92,6 +92,26 @@ export default function AdminUsers() {
     position: "",
   });
 
+  // Helper to check if department field should be disabled
+  const isDepartmentFieldDisabled = () => {
+    return formData.role === "HEAD_OF_DEPARTMENT";
+  };
+
+  // Auto-clear department when role changes to HEAD_OF_DEPARTMENT
+  const handleRoleChange = (newRole: string) => {
+    const updatedFormData = {
+      ...formData,
+      role: newRole
+    };
+    
+    // Clear departmentId if role is HEAD_OF_DEPARTMENT
+    if (newRole === "HEAD_OF_DEPARTMENT") {
+      updatedFormData.departmentId = "";
+    }
+    
+    setFormData(updatedFormData);
+  };
+
   // Fetch users and departments on component mount
   useEffect(() => {
     const fetchUsers = async () => {
@@ -149,7 +169,7 @@ export default function AdminUsers() {
         role: formData.role,
         phone: formData.phone || undefined,
         position: formData.position || undefined,
-        departmentId: formData.departmentId || undefined,
+        departmentId: formData.role === "HEAD_OF_DEPARTMENT" ? undefined : (formData.departmentId || undefined),
       };
 
       const newUser = await userService.createUser(createData);
@@ -177,7 +197,7 @@ export default function AdminUsers() {
         role: formData.role || undefined,
         phone: formData.phone || undefined,
         position: formData.position || undefined,
-        departmentId: formData.departmentId || undefined,
+        departmentId: formData.role === "HEAD_OF_DEPARTMENT" ? undefined : (formData.departmentId || undefined),
       };
 
       // Remove empty strings and convert to undefined
@@ -300,14 +320,14 @@ export default function AdminUsers() {
                 New User
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Create User</DialogTitle>
                 <DialogDescription>
                   Fill in the information to create a new account
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
+              <div className="grid max-h-[calc(90vh-180px)] gap-4 overflow-y-auto py-4 pr-1">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
@@ -381,7 +401,7 @@ export default function AdminUsers() {
                   <Label htmlFor="role">Role</Label>
                   <Select
                     value={formData.role}
-                    onValueChange={(value) => setFormData({ ...formData, role: value })}
+                    onValueChange={handleRoleChange}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -397,12 +417,18 @@ export default function AdminUsers() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="department">Department</Label>
+                  {formData.role === "HEAD_OF_DEPARTMENT" && (
+                    <p className="text-sm text-muted-foreground">
+                      Department heads are assigned via the department's "Head" field, not as regular employees.
+                    </p>
+                  )}
                   <Select
                     value={formData.departmentId}
                     onValueChange={(value) => setFormData({ ...formData, departmentId: value })}
+                    disabled={isDepartmentFieldDisabled()}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select..." />
+                      <SelectValue placeholder={isDepartmentFieldDisabled() ? "Not applicable for department heads" : "Select..."} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">No Department</SelectItem>
@@ -569,14 +595,14 @@ export default function AdminUsers() {
 
         {/* Edit Dialog */}
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle>Edit User</DialogTitle>
               <DialogDescription>
                 Modify the user's information
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <div className="grid max-h-[calc(90vh-180px)] gap-4 overflow-y-auto py-4 pr-1">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="editFirstName">First Name</Label>
@@ -637,7 +663,7 @@ export default function AdminUsers() {
                 <Label htmlFor="editRole">Role</Label>
                 <Select
                   value={formData.role}
-                  onValueChange={(value) => setFormData({ ...formData, role: value })}
+                  onValueChange={handleRoleChange}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -653,12 +679,18 @@ export default function AdminUsers() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="editDepartment">Department</Label>
+                {formData.role === "HEAD_OF_DEPARTMENT" && (
+                  <p className="text-sm text-muted-foreground">
+                    Department heads are assigned via the department's "Head" field, not as regular employees.
+                  </p>
+                )}
                 <Select
                   value={formData.departmentId}
                   onValueChange={(value) => setFormData({ ...formData, departmentId: value })}
+                  disabled={isDepartmentFieldDisabled()}
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder={isDepartmentFieldDisabled() ? "Not applicable for department heads" : "Select..."} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No Department</SelectItem>

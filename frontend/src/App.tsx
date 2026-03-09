@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
@@ -53,6 +54,8 @@ import DirectorAnalytics from "./pages/director/DirectorAnalytics";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminMissions from "./pages/admin/AdminMissions";
+import AdminMissionDetails from "./pages/admin/AdminMissionDetails";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminRoles from "./pages/admin/AdminRoles";
 import AdminConfig from "./pages/admin/AdminConfig";
@@ -76,7 +79,8 @@ const App = () => (
       <Sonner position="top-right" />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
+          <NotificationProvider>
+            <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/password-reset" element={<PasswordReset />} />
@@ -84,32 +88,32 @@ const App = () => (
             
             {/* Employee Routes */}
             <Route path="/employee" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
                 <EmployeeDashboard />
               </ProtectedRoute>
             } />
             <Route path="/employee/missions" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
                 <MissionsList />
               </ProtectedRoute>
             } />
             <Route path="/employee/mission/:id" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
                 <MissionDetails />
               </ProtectedRoute>
             } />
             <Route path="/employee/substitution/:missionId" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
                 <SubstitutionForm />
               </ProtectedRoute>
             } />
             <Route path="/employee/report/:missionId" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
                 <ReportForm />
               </ProtectedRoute>
             } />
             <Route path="/employee/reports" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
                 <ReportsList />
               </ProtectedRoute>
             } />
@@ -121,37 +125,37 @@ const App = () => (
             
             {/* Department Head Routes */}
             <Route path="/department" element={
-              <ProtectedRoute allowedRoles={['DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
                 <DepartmentDashboard />
               </ProtectedRoute>
             } />
             <Route path="/department/missions" element={
-              <ProtectedRoute allowedRoles={['DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
                 <DepartmentMissionsList />
               </ProtectedRoute>
             } />
             <Route path="/department/create-mission" element={
-              <ProtectedRoute allowedRoles={['DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
                 <CreateMission />
               </ProtectedRoute>
             } />
             <Route path="/department/approval/:id" element={
-              <ProtectedRoute allowedRoles={['DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
                 <ApprovalPage />
               </ProtectedRoute>
             } />
             <Route path="/department/substitution-review/:id" element={
-              <ProtectedRoute allowedRoles={['DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
                 <SubstitutionReview />
               </ProtectedRoute>
             } />
             <Route path="/department/team" element={
-              <ProtectedRoute allowedRoles={['DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
                 <TeamView />
               </ProtectedRoute>
             } />
             <Route path="/department/reports" element={
-              <ProtectedRoute allowedRoles={['DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
                 <DepartmentReports />
               </ProtectedRoute>
             } />
@@ -248,6 +252,16 @@ const App = () => (
                 <AdminUsers />
               </ProtectedRoute>
             } />
+            <Route path="/admin/missions" element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminMissions />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/missions/:id" element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminMissionDetails />
+              </ProtectedRoute>
+            } />
             <Route path="/admin/roles" element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <AdminRoles />
@@ -303,7 +317,8 @@ const App = () => (
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
-          </Routes>
+            </Routes>
+          </NotificationProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

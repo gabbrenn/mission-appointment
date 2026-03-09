@@ -20,47 +20,150 @@ import {
   Target,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
-import { formatCurrency, formatDate, mockMissions } from "@/lib/mockData";
+import { useState, useEffect, useCallback } from "react";
+import { missionService, Mission, MissionAssignment } from "@/services/mission.service";
+import { formatCurrency } from "@/lib/mockData";
+import { useNotifications } from "@/hooks/use-notifications";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function MissionDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { addAppNotification } = useNotifications();
+  const [mission, setMission] = useState<Mission | null>(null);
+  const [assignment, setAssignment] = useState<MissionAssignment | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isCompleting, setIsCompleting] = useState(false);
   
-  // Find mission by ID or use first mission as fallback
-  const mission = mockMissions.find(m => m.id === id) || mockMissions[0];
+  const fetchMissionDetails = useCallback(async () => {
+    if (!id) return;
+
+    try {
+      setLoading(true);
+      const [missionData, assignmentData] = await Promise.all([
+        missionService.getMissionById(id),
+        missionService.getUserAssignmentByMission(id).catch(() => null),
+      ]);
+
+      const derivedAssignment =
+        assignmentData ||
+        missionData.assignments.find((item) => item.employee.id === user?.id) ||
+        null;
+
+      setMission(missionData);
+      setAssignment(derivedAssignment);
+    } catch (error) {
+      console.error('Error fetching mission details:', error);
+      navigate('/employee');
+    } finally {
+      setLoading(false);
+    }
+  }, [id, navigate, user?.id]);
+
+  useEffect(() => {
+    fetchMissionDetails();
+  }, [fetchMissionDetails]);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const handleResponse = async (response: 'ACCEPTED' | 'DECLINED') => {
+    if (!assignment) return;
+    
+    try {
+      await missionService.respondToAssignment(assignment.id, response);
+
+      if (response === 'ACCEPTED') {
+        addAppNotification({
+          type: 'approval',
+          title: 'Mission Accepted',
+          message: `An employee accepted mission "${mission?.title || 'N/A'}".`,
+          actionUrl: id ? `/employee/mission/${id}` : undefined,
+          priority: 'medium',
+        });
+      }
+
+      // Refresh assignment data
+      const updatedAssignment = await missionService.getUserAssignmentByMission(id!);
+      setAssignment(updatedAssignment);
+    } catch (error) {
+      console.error('Error responding to assignment:', error);
+    }
+  };
+
+  const handleMarkCompleted = async () => {
+    if (!mission || !assignment) return;
+
+    try {
+      setIsCompleting(true);
+      await missionService.markMissionCompleted(mission.id);
+      toast.success('Mission marked as completed');
+      await fetchMissionDetails();
+    } catch (error) {
+      console.error('Error completing mission:', error);
+      toast.error('Failed to mark mission as completed');
+    } finally {
+      setIsCompleting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout userRole="employee">
+        <div className="flex justify-center p-8">
+          <div className="text-muted-foreground">Loading mission details...</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!mission) {
+    return (
+      <DashboardLayout userRole="employee">
+        <div className="flex justify-center p-8">
+          <div className="text-muted-foreground">Mission not found</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
   
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-500';
-      case 'assigned': return 'bg-blue-500';
-      case 'accepted': return 'bg-green-500';
-      case 'in_progress': return 'bg-purple-500';
-      case 'completed': return 'bg-gray-500';
-      case 'rejected': return 'bg-red-500';
+      case 'PENDING': return 'bg-yellow-500';
+      case 'ASSIGNED': return 'bg-blue-500';
+      case 'ACCEPTED': return 'bg-green-500';
+      case 'IN_PROGRESS': return 'bg-purple-500';
+      case 'COMPLETED': return 'bg-gray-500';
+      case 'DECLINED': return 'bg-red-500';
       default: return 'bg-gray-500';
     }
   };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'pending': return 'Pending';
-      case 'assigned': return 'Assigned';
-      case 'accepted': return 'Accepted';
-      case 'in_progress': return 'In Progress';
-      case 'completed': return 'Completed';
-      case 'rejected': return 'Rejected';
+      case 'PENDING': return 'Pending';
+      case 'ASSIGNED': return 'Assigned';
+      case 'ACCEPTED': return 'Accepted';
+      case 'IN_PROGRESS': return 'In Progress';
+      case 'COMPLETED': return 'Completed';
+      case 'DECLINED': return 'Declined';
       default: return status;
     }
   };
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'inspection': return 'Inspection';
-      case 'formation': return 'Training';
-      case 'reunion': return 'Meeting';
-      case 'audit': return 'Audit';
-      case 'livraison': return 'Delivery';
-      default: return type;
+  const getUrgencyLabel = (urgencyLevel: string) => {
+    switch (urgencyLevel) {
+      case 'HIGH': return 'High Priority';
+      case 'MEDIUM': return 'Medium Priority';
+      case 'LOW': return 'Low Priority';
+      default: return urgencyLevel;
     }
   };
 
@@ -71,7 +174,11 @@ export default function MissionDetails() {
     { name: 'Detailed Budget.xlsx', size: '89 KB', type: 'excel' },
   ];
 
-  const canRespond = mission.status === 'assigned' || mission.status === 'pending';
+  const canRespond = assignment && assignment.assignmentStatus === 'PENDING';
+  const canMarkCompleted =
+    !!assignment &&
+    assignment.assignmentStatus === 'ACCEPTED' &&
+    !['COMPLETED', 'REJECTED', 'CANCELLED'].includes(mission.status);
 
   return (
     <DashboardLayout userRole="employee">
@@ -91,12 +198,12 @@ export default function MissionDetails() {
                 {mission.title}
               </h1>
               <p className="text-muted-foreground">
-                Mission #{mission.id} • {getTypeLabel(mission.type)}
+                Mission #{mission.missionNumber}
               </p>
             </div>
           </div>
-          <Badge className={`${getStatusColor(mission.status)} text-white`}>
-            {getStatusLabel(mission.status)}
+          <Badge className={`${getStatusColor(assignment?.assignmentStatus || mission.status)} text-white`}>
+            {getStatusLabel(assignment?.assignmentStatus || mission.status)}
           </Badge>
         </div>
 
@@ -115,7 +222,7 @@ export default function MissionDetails() {
                   <Button 
                     variant="outline" 
                     className="border-red-500 text-red-500 hover:bg-red-50"
-                    onClick={() => navigate(`/employee/mission/${mission.id}/decline`)}
+                    onClick={() => handleResponse('DECLINED')}
                   >
                     <XCircle className="h-4 w-4 mr-2" />
                     Decline
@@ -127,7 +234,10 @@ export default function MissionDetails() {
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Request Substitution
                   </Button>
-                  <Button className="bg-green-600 hover:bg-green-700">
+                  <Button 
+                    className="bg-green-600 hover:bg-green-700"
+                    onClick={() => handleResponse('ACCEPTED')}
+                  >
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Accept
                   </Button>
@@ -158,7 +268,7 @@ export default function MissionDetails() {
                     <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <p className="text-sm text-muted-foreground">Department</p>
-                      <p className="font-medium">{mission.department}</p>
+                      <p className="font-medium">{mission.department.name}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -191,30 +301,51 @@ export default function MissionDetails() {
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-2">Required Skills</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {mission.requiredSkills.map((skill, index) => (
-                      <Badge key={index} variant="secondary">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
+                  <h4 className="font-semibold mb-2">Urgency Level</h4>
+                  <Badge variant={mission.urgencyLevel === 'HIGH' ? 'destructive' : mission.urgencyLevel === 'MEDIUM' ? 'default' : 'secondary'}>
+                    {getUrgencyLabel(mission.urgencyLevel)}
+                  </Badge>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Approval Timeline */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Approval Process</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ApprovalTimeline steps={mission.approvalStatus} />
-              </CardContent>
-            </Card>
+            {/* Assignment Status */}
+            {assignment && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Assignment Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Status:</span>
+                      <Badge className={`${getStatusColor(assignment.assignmentStatus)} text-white`}>
+                        {getStatusLabel(assignment.assignmentStatus)}
+                      </Badge>
+                    </div>
+                    {assignment.assignedAt && (
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Assigned At:</span>
+                        <span className="text-muted-foreground">
+                          {formatDate(assignment.assignedAt)}
+                        </span>
+                      </div>
+                    )}
+                    {assignment.respondedAt && (
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Responded At:</span>
+                        <span className="text-muted-foreground">
+                          {formatDate(assignment.respondedAt)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Documents */}
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle>Documents</CardTitle>
               </CardHeader>
@@ -239,7 +370,7 @@ export default function MissionDetails() {
                   ))}
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
 
           {/* Sidebar */}
@@ -255,7 +386,7 @@ export default function MissionDetails() {
               <CardContent className="space-y-4">
                 <div className="text-center">
                   <p className="text-3xl font-bold text-primary">
-                    {formatCurrency(mission.budget)}
+                    {formatCurrency(Number(mission.estimatedBudget))}
                   </p>
                   <p className="text-sm text-muted-foreground">Total Budget</p>
                 </div>
@@ -263,87 +394,50 @@ export default function MissionDetails() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Transport</span>
-                    <span>{formatCurrency(mission.budget * 0.3)}</span>
+                    <span>{formatCurrency(Number(mission.estimatedBudget) * 0.3)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Accommodation</span>
-                    <span>{formatCurrency(mission.budget * 0.25)}</span>
+                    <span>{formatCurrency(Number(mission.estimatedBudget) * 0.25)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Per Diem</span>
-                    <span>{formatCurrency(mission.budget * 0.35)}</span>
+                    <span>{formatCurrency(Number(mission.estimatedBudget) * 0.35)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Other</span>
-                    <span>{formatCurrency(mission.budget * 0.1)}</span>
+                    <span>{formatCurrency(Number(mission.estimatedBudget) * 0.1)}</span>
                   </div>
                 </div>
                 <div className="pt-2 border-t">
                   <p className="text-xs text-muted-foreground">
-                    Budget Code: {mission.budgetCode}
+                    Budget Code: {mission.missionNumber}-BUDGET
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Assigned Employee */}
-            {mission.assignedTo && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    Assigned Employee
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-lg font-semibold text-primary">
-                        {mission.assignedTo.firstName[0]}{mission.assignedTo.lastName[0]}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium">
-                        {mission.assignedTo.firstName} {mission.assignedTo.lastName}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {mission.assignedTo.department}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Fairness Score</span>
-                      <Badge variant="outline">{mission.assignedTo.fairnessScore}%</Badge>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Total Missions</span>
-                      <span>{mission.assignedTo.totalMissions}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Quick Actions */}
             <Card>
               <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {mission.status === 'completed' && (
-                  <Button 
-                    className="w-full" 
-                    onClick={() => navigate(`/employee/mission/${mission.id}/report`)}
+                {canMarkCompleted && (
+                  <Button className="w-full" onClick={handleMarkCompleted} disabled={isCompleting}>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    {isCompleting ? 'Marking...' : 'Mark Mission as Completed'}
+                  </Button>
+                )}
+                {mission.status === 'COMPLETED' && (
+                  <Button
+                    className="w-full"
+                    variant="secondary"
+                    onClick={() => navigate(`/employee/report/${mission.id}`)}
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     Submit Report
                   </Button>
                 )}
-                <Button variant="outline" className="w-full">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Mission Order
-                </Button>
               </CardContent>
             </Card>
           </div>

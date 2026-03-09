@@ -29,7 +29,7 @@ class DepartmentService {
         return this.departmentRepository.create(data);
     }
     async updateDepartment(id, data) {
-        await this.getDepartmentById(id);
+        const existing = await this.getDepartmentById(id);
         if (data.name) {
             const existingByName = await this.departmentRepository.findByName(data.name);
             if (existingByName && existingByName.id !== id) {
@@ -42,19 +42,93 @@ class DepartmentService {
                 throw new ApiError_1.ApiError("Department code already exists", 409);
             }
         }
-        // Validate department head if provided
-        if (data.headId) {
-            await this.validateDepartmentHead(data.headId, id);
+        // Handle department head changes
+        if (data.headId !== undefined) {
+            // If removing head (setting to null)
+            if (data.headId === null || data.headId === '') {
+                // Simply allow removal
+                data.headId = undefined;
+            }
+            else {
+                // If assigning new head, validate
+                await this.validateDepartmentHead(data.headId, id);
+            }
         }
         return this.departmentRepository.update(id, data);
     }
     async deleteDepartment(id) {
-        await this.getDepartmentById(id);
+        const department = await this.getDepartmentById(id);
+        // Check if department has users assigned
+        const users = await this.departmentRepository.getDepartmentUsers(id);
+        if (users.length > 0) {
+            throw new ApiError_1.ApiError(`Cannot delete department. ${users.length} users are currently assigned to this department. Please reassign users first.`, 400);
+        }
+        // Check if department has a head assigned
+        if (department.headId) {
+            throw new ApiError_1.ApiError("Cannot delete department. Please remove the department head assignment first.", 400);
+        }
         return this.departmentRepository.softDelete(id);
     }
     async getDepartmentUsers(id) {
         await this.getDepartmentById(id);
         return this.departmentRepository.getDepartmentUsers(id);
+    }
+    async removeDepartmentHead(id) {
+        const department = await this.getDepartmentById(id);
+        if (!department.headId) {
+            throw new ApiError_1.ApiError("Department does not have a head assigned", 400);
+        }
+        return this.departmentRepository.update(id, {
+            departmentHead: {
+                disconnect: true
+            }
+        });
+    }
+    async bulkTransferUsers(fromDepartmentId, toDepartmentId, userIds) {
+        // Validate source department
+        await this.getDepartmentById(fromDepartmentId);
+        // Validate target department
+        const targetDepartment = await this.getDepartmentById(toDepartmentId);
+        if (targetDepartment.status !== 'ACTIVE') {
+            throw new ApiError_1.ApiError("Cannot transfer users to inactive department", 400);
+        }
+        if (userIds.length === 0) {
+            throw new ApiError_1.ApiError("At least one user ID is required", 400);
+        }
+        // Batch update users through user repository
+        const results = [];
+        for (const userId of userIds) {
+            try {
+                const user = await this.userRepository.getUserById(userId);
+                if (!user) {
+                    results.push({ userId, success: false, error: "User not found" });
+                    continue;
+                }
+                if (user.departmentId !== fromDepartmentId) {
+                    results.push({ userId, success: false, error: "User not in source department" });
+                    continue;
+                }
+                if (user.role === client_1.Role.HEAD_OF_DEPARTMENT) {
+                    results.push({ userId, success: false, error: "Cannot transfer department head as regular employee" });
+                    continue;
+                }
+                await this.userRepository.updateUser(userId, {
+                    department: {
+                        connect: { id: toDepartmentId }
+                    }
+                });
+                results.push({ userId, success: true });
+            }
+            catch (error) {
+                results.push({ userId, success: false, error: error.message });
+            }
+        }
+        return {
+            total: userIds.length,
+            successful: results.filter(r => r.success).length,
+            failed: results.filter(r => !r.success).length,
+            results
+        };
     }
     async ensureUnique(name, code) {
         const [existingName, existingCode] = await Promise.all([

@@ -40,6 +40,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { UserRole } from "@/lib/mockData";
 
 export default function Help() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,6 +50,7 @@ export default function Help() {
     category: '',
     message: '',
   });
+  const { user: authUser } = useAuth();
 
   const faqs = [
     {
@@ -161,8 +164,25 @@ export default function Help() {
     )
   })).filter(category => category.questions.length > 0);
 
+  
+    // Map user role to DashboardLayout role
+    const getUserRole = (): UserRole => {
+      if (!authUser?.role) return 'employee';
+      const roleMap: Record<string, UserRole> = {
+        'ADMIN': 'admin',
+        'DIRECTOR': 'director',
+        'DIRECTOR_GENERAL': 'director',
+        'HEAD_OF_DEPARTMENT': 'department_head',
+        'DEPARTMENT_HEAD': 'department_head',
+        'FINANCE': 'finance',
+        'HR': 'hr',
+        'EMPLOYEE': 'employee',
+      };
+      return roleMap[authUser.role] || 'employee';
+    };
+
   return (
-    <DashboardLayout userRole="employee">
+    <DashboardLayout userRole={getUserRole()}>
       <div className="space-y-6 max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center">

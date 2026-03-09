@@ -5,12 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { ApprovalTimeline } from "@/components/approval-timeline";
 import {
   ArrowLeft,
   CheckCircle,
   XCircle,
-  Edit,
   MapPin,
   Calendar,
   DollarSign,
@@ -20,64 +18,128 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useState } from "react";
-import { mockMissions, mockUsers, formatCurrency, formatDate } from "@/lib/mockData";
+import { useEffect, useState } from "react";
+import { formatCurrency, formatDate } from "@/lib/mockData";
 import { toast } from "sonner";
+import { missionService, Mission } from "@/services/mission.service";
 
 export default function ApprovalPage() {
   const navigate = useNavigate();
-  const { missionId } = useParams();
+  const { id: missionId } = useParams(); // Fix: route param is 'id', not 'missionId'
   const [comments, setComments] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [missionDetails, setMissionDetails] = useState<Mission | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Find mission data (mock)
-  const mission = mockMissions.find(m => m.id === missionId) || mockMissions[0];
-  const employee = mockUsers.find(u => u.id === (typeof mission?.assignedTo === 'string' ? mission?.assignedTo : mission?.assignedTo?.id)) || mockUsers[0];
+  const budgetBreakdown = missionDetails ? [
+    { label: 'Transport', amount: Number(missionDetails.estimatedBudget) * 0.35 },
+    { label: 'Accommodation', amount: Number(missionDetails.estimatedBudget) * 0.30 },
+    { label: 'Per Diem', amount: Number(missionDetails.estimatedBudget) * 0.25 },
+    { label: 'Other', amount: Number(missionDetails.estimatedBudget) * 0.10 },
+  ] : [];
 
-  const budgetBreakdown = [
-    { label: 'Transport', amount: mission.budget * 0.35 },
-    { label: 'Accommodation', amount: mission.budget * 0.30 },
-    { label: 'Per Diem', amount: mission.budget * 0.25 },
-    { label: 'Other', amount: mission.budget * 0.10 },
-  ];
+  useEffect(() => {
+    const fetchMissionDetails = async () => {
+      if (!missionId) {
+        setIsLoading(false);
+        return;
+      }
+      
+      try {
+        setIsLoading(true);
+        const response = await missionService.getMissionById(missionId);
+        setMissionDetails(response);
+      } catch (error) {
+        console.error("Error fetching mission details:", error);
+        
+        // Enhanced error handling
+        if (error instanceof Error) {
+          if (error.message.includes('timeout')) {
+            toast.error("Request timed out. Please check your connection and try again.");
+          } else if (error.message.includes('401')) {
+            toast.error("Authentication failed. Please log in again.");
+          } else if (error.message.includes('404')) {
+            toast.error("Mission not found.");
+          } else {
+            toast.error(`Failed to fetch mission details: ${error.message}`);
+          }
+        } else {
+          toast.error("Failed to fetch mission details");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchMissionDetails();
+  }, [missionId]);
 
   const handleApprove = async () => {
-    if (!comments.trim()) {
-      toast.error("Please add a comment before approving");
+    if (!missionId) {
+      toast.error("Mission ID not found");
       return;
     }
+    
     setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    toast.success("Mission approved successfully");
-    navigate('/department');
+    try {
+      await missionService.approveMission(missionId, comments);
+      toast.success("Mission approved successfully");
+      navigate('/department');
+    } catch (error) {
+      console.error("Error approving mission:", error);
+      toast.error("Failed to approve mission");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleReject = async () => {
-    if (!comments.trim()) {
-      toast.error("Please justify the rejection in the comments");
+    if (!missionId) {
+      toast.error("Mission ID not found");
       return;
     }
+    
     setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    toast.success("Mission rejected");
-    navigate('/department');
-  };
-
-  const handleModify = () => {
-    toast.info("Redirecting to edit...");
-    navigate(`/department/mission/edit/${missionId}`);
+    try {
+      await missionService.rejectMission(missionId, comments, "Rejected by Department Head");
+      toast.success("Mission rejected");
+      navigate('/department');
+    } catch (error) {
+      console.error("Error rejecting mission:", error);
+      toast.error("Failed to reject mission");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   // Budget impact analysis
-  const departmentBudget = 15000000; // Mock
-  const usedBudget = 8500000;
+  const departmentBudget = missionDetails ? Number(missionDetails.department.budgetAllocation) : 0;
+  const usedBudget = departmentBudget * 0.6; // Mock - would be calculated from other missions
   const remainingBudget = departmentBudget - usedBudget;
-  const afterApproval = remainingBudget - mission.budget;
-  const budgetImpactPercent = ((mission.budget / departmentBudget) * 100).toFixed(1);
+  const missionBudget = missionDetails ? Number(missionDetails.estimatedBudget) : 0;
+  const afterApproval = remainingBudget - missionBudget;
+  const budgetImpactPercent = departmentBudget > 0 ? ((missionBudget / departmentBudget) * 100).toFixed(1) : '0';
   const isBudgetWarning = afterApproval < departmentBudget * 0.2;
 
   return (
     <DashboardLayout userRole="department_head">
+      {isLoading ? (
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground">Loading mission details...</p>
+          </div>
+        </div>
+      ) : !missionDetails ? (
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-4">
+            <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto" />
+            <p className="text-muted-foreground">Mission not found</p>
+            <Button onClick={() => navigate('/department')}>
+              Back to Dashboard
+            </Button>
+          </div>
+        </div>
+      ) : (
       <div className="space-y-6 max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4">
@@ -97,7 +159,7 @@ export default function ApprovalPage() {
             </p>
           </div>
           <Badge variant="outline" className="text-lg px-4 py-2">
-            {mission.id}
+            {missionDetails?.missionNumber || 'Loading...'}
           </Badge>
         </div>
 
@@ -113,42 +175,75 @@ export default function ApprovalPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <h3 className="text-xl font-semibold">{mission.title}</h3>
-                
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    <span>{mission.destination}</span>
+                {missionDetails ? (
+                  <>
+                    <h3 className="text-xl font-semibold">{missionDetails.title}</h3>
+                    
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <MapPin className="h-4 w-4" />
+                        <span>{missionDetails.destination}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        <span>{formatDate(missionDetails.startDate)} - {formatDate(missionDetails.endDate)}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Building className="h-4 w-4" />
+                        <span>{missionDetails.department.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <DollarSign className="h-4 w-4" />
+                        <span className="font-semibold text-foreground">
+                          {formatCurrency(Number(missionDetails.estimatedBudget))}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="animate-pulse space-y-4">
+                    <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="h-4 bg-gray-200 rounded"></div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>{formatDate(mission.startDate)} - {formatDate(mission.endDate)}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Building className="h-4 w-4" />
-                    <span>{mission.department}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <DollarSign className="h-4 w-4" />
-                    <span className="font-semibold text-foreground">
-                      {formatCurrency(mission.budget)}
-                    </span>
-                  </div>
-                </div>
+                )}
 
                 <Separator />
 
-                <div>
-                  <h4 className="font-medium mb-2">Description</h4>
-                  <p className="text-muted-foreground">
-                    {mission.description || "Regular inspection of post offices in the assigned region. Verification of operations, service quality and compliance with RNP standards."}
-                  </p>
-                </div>
+                {missionDetails && (
+                  <>
+                    <div>
+                      <h4 className="font-medium mb-2">Description</h4>
+                      <p className="text-muted-foreground">
+                        {missionDetails.description}
+                      </p>
+                    </div>
 
-                <div>
-                  <h4 className="font-medium mb-2">Mission Type</h4>
-                  <Badge>{mission.type || 'Inspection'}</Badge>
-                </div>
+                    <div>
+                      <h4 className="font-medium mb-2">Mission Number</h4>
+                      <Badge>{missionDetails.missionNumber}</Badge>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium mb-2">Required Qualifications</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {missionDetails.requiredQualifications.map((qualification, index) => (
+                          <Badge key={index} variant="outline">{qualification}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium mb-2">Urgency Level</h4>
+                      <Badge variant={missionDetails.urgencyLevel === 'HIGH' ? 'destructive' : missionDetails.urgencyLevel === 'MEDIUM' ? 'default' : 'secondary'}>
+                        {missionDetails.urgencyLevel}
+                      </Badge>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
 
@@ -161,21 +256,32 @@ export default function ApprovalPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {budgetBreakdown.map((item, index) => (
-                    <div key={index} className="flex justify-between items-center">
-                      <span className="text-muted-foreground">{item.label}</span>
-                      <span className="font-medium">{formatCurrency(item.amount)}</span>
+                {missionDetails && budgetBreakdown.length > 0 ? (
+                  <div className="space-y-3">
+                    {budgetBreakdown.map((item, index) => (
+                      <div key={index} className="flex justify-between items-center">
+                        <span className="text-muted-foreground">{item.label}</span>
+                        <span className="font-medium">{formatCurrency(item.amount)}</span>
+                      </div>
+                    ))}
+                    <Separator />
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold">Total</span>
+                      <span className="text-xl font-bold text-primary">
+                        {formatCurrency(Number(missionDetails.estimatedBudget))}
+                      </span>
                     </div>
-                  ))}
-                  <Separator />
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold">Total</span>
-                    <span className="text-xl font-bold text-primary">
-                      {formatCurrency(mission.budget)}
-                    </span>
                   </div>
-                </div>
+                ) : (
+                  <div className="animate-pulse space-y-3">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="flex justify-between items-center">
+                        <div className="h-4 bg-gray-200 rounded w-20"></div>
+                        <div className="h-4 bg-gray-200 rounded w-16"></div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -221,7 +327,7 @@ export default function ApprovalPage() {
             </Card>
 
             {/* Comments */}
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle>Comments</CardTitle>
                 <CardDescription>
@@ -236,7 +342,7 @@ export default function ApprovalPage() {
                   rows={4}
                 />
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
 
           {/* Sidebar */}
@@ -250,77 +356,85 @@ export default function ApprovalPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                    <span className="text-xl font-semibold text-primary">
-                      {employee.firstName[0]}{employee.lastName[0]}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-semibold">
-                      {employee.firstName} {employee.lastName}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {employee.role}
-                    </p>
-                    <Badge variant={employee.isAvailable ? "default" : "secondary"}>
-                      {employee.isAvailable ? 'Available' : 'On mission'}
-                    </Badge>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Department</span>
-                    <span>{employee.department}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Missions (year)</span>
-                    <span>{employee.totalMissions || 3}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Fairness Score</span>
-                    <span className="font-semibold text-primary">
-                      {employee.fairnessScore}%
-                    </span>
-                  </div>
-                </div>
-
-                {employee.skills && employee.skills.length > 0 && (
+                {missionDetails && missionDetails.assignments.length > 0 ? (
                   <>
-                    <Separator />
-                    <div>
-                      <p className="text-sm font-medium mb-2">Skills</p>
-                      <div className="flex flex-wrap gap-1">
-                        {employee.skills.map((skill, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {skill}
-                          </Badge>
-                        ))}
+                    <div className="flex items-center gap-4">
+                      <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-xl font-semibold text-primary">
+                          {missionDetails.assignments[0].employee.firstName[0]}{missionDetails.assignments[0].employee.lastName[0]}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-semibold">
+                          {missionDetails.assignments[0].employee.firstName} {missionDetails.assignments[0].employee.lastName}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {missionDetails.assignments[0].employee.role}
+                        </p>
+                        <Badge variant={missionDetails.assignments[0].employee.availabilityStatus === 'AVAILABLE' ? "default" : "secondary"}>
+                          {missionDetails.assignments[0].employee.availabilityStatus}
+                        </Badge>
                       </div>
                     </div>
+
+                    <Separator />
+
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Department</span>
+                        <span>{missionDetails.department.name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Assignment Status</span>
+                        <Badge variant="outline">{missionDetails.assignments[0].assignmentStatus}</Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Fairness Score</span>
+                        <span className="font-semibold text-primary">
+                          {missionDetails.assignments[0].fairnessScoreAtAssignment}%
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {missionDetails.assignments[0].assignmentReason && (
+                      <>
+                        <Separator />
+                        <div>
+                          <p className="text-sm font-medium mb-1">Assignment Reason</p>
+                          <p className="text-xs text-muted-foreground">
+                            {missionDetails.assignments[0].assignmentReason}
+                          </p>
+                        </div>
+                      </>
+                    )}
                   </>
+                ) : (
+                  <div className="text-center text-muted-foreground py-8">
+                    <User className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p>No employee assigned yet</p>
+                  </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Approval Timeline */}
+            {/* Status */}
             <Card>
               <CardHeader>
-                <CardTitle>Approval History</CardTitle>
+                <CardTitle>Status</CardTitle>
               </CardHeader>
               <CardContent>
-                <ApprovalTimeline 
-                  steps={[
-                    { role: 'Employee', status: 'approved', date: formatDate(mission.startDate), comment: 'Request submitted' },
-                    { role: 'Department Head', status: 'pending', date: '', comment: 'Awaiting your approval' },
-                    { role: 'Finance', status: 'pending', date: '', comment: '' },
-                    { role: 'HR', status: 'pending', date: '', comment: '' },
-                    { role: 'Director', status: 'pending', date: '', comment: '' },
-                  ]}
-                />
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Current Status</span>
+                    <Badge variant="outline">{missionDetails?.status}</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Urgency</span>
+                    <Badge variant={missionDetails?.urgencyLevel === 'HIGH' ? 'destructive' : missionDetails?.urgencyLevel === 'MEDIUM' ? 'default' : 'secondary'}>
+                      {missionDetails?.urgencyLevel}
+                    </Badge>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -337,16 +451,6 @@ export default function ApprovalPage() {
                 </Button>
                 
                 <Button 
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleModify}
-                  disabled={isProcessing}
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Modify
-                </Button>
-                
-                <Button 
                   variant="destructive"
                   className="w-full"
                   onClick={handleReject}
@@ -360,6 +464,7 @@ export default function ApprovalPage() {
           </div>
         </div>
       </div>
+      )}
     </DashboardLayout>
   );
 }

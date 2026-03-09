@@ -41,7 +41,7 @@ const navItems: Record<UserRole, NavItem[]> = {
   employee: [
     { label: "Dashboard", href: "/employee", icon: LayoutDashboard },
     { label: "My Missions", href: "/employee/missions", icon: Briefcase },
-    { label: "Reports", href: "/employee/reports", icon: FileText },
+    // { label: "Reports", href: "/employee/reports", icon: FileText },
     { label: "My Profile", href: "/employee/profile", icon: User },
   ],
   department_head: [
@@ -71,11 +71,12 @@ const navItems: Record<UserRole, NavItem[]> = {
   ],
   admin: [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { label: "Missions", href: "/admin/missions", icon: Briefcase },
     { label: "Users", href: "/admin/users", icon: UserCog },
-    { label: "Roles", href: "/admin/roles", icon: Shield },
+    // { label: "Roles", href: "/admin/roles", icon: Shield },
     { label: "Departments", href: "/admin/departments", icon: Building2 },
-    { label: "Configuration", href: "/admin/config", icon: Settings },
-    { label: "Audit", href: "/admin/audit", icon: FileBarChart },
+    // { label: "Configuration", href: "/admin/config", icon: Settings },
+    // { label: "Audit", href: "/admin/audit", icon: FileBarChart },
     { label: "Maintenance", href: "/admin/maintenance", icon: Wrench },
   ],
 };
@@ -95,7 +96,7 @@ interface AppSidebarProps {
 export function AppSidebar({ userRole, userName, userEmail }: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const { logout } = useAuth();
+  const {user, logout } = useAuth();
   const roleNav = navItems[userRole];
 
   const handleLogout = async () => {
@@ -202,10 +203,10 @@ export function AppSidebar({ userRole, userName, userEmail }: AppSidebarProps) {
           {!collapsed && (
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-sidebar-foreground truncate">
-                {userName}
+                {user.firstName + user.lastName}
               </p>
               <p className="text-xs text-sidebar-muted truncate">
-                {userEmail}
+                {user.email}
               </p>
             </div>
           )}

@@ -65,4 +65,25 @@ export class DepartmentController {
             next(error);
         }
     }
+
+    async removeDepartmentHead(req: Request, res: Response, next: NextFunction) {
+        try {
+            const department = await this.departmentService.removeDepartmentHead(req.params.id as string);
+            return ApiResponseHelper.success(res, department, "Department head removed successfully");
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async bulkTransferUsers(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { toDepartmentId, userIds } = req.body;
+            const fromDepartmentId = req.params.id as string;
+            
+            const result = await this.departmentService.bulkTransferUsers(fromDepartmentId, toDepartmentId, userIds);
+            return ApiResponseHelper.success(res, result, "User transfer completed");
+        } catch (error) {
+            next(error);
+        }
+    }
 }

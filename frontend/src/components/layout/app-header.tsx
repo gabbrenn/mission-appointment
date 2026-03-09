@@ -12,6 +12,8 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useNotifications } from "@/hooks/use-notifications";
+import { formatNotificationTime } from "@/lib/notifications";
 
 interface AppHeaderProps {
   title: string;
@@ -21,6 +23,7 @@ interface AppHeaderProps {
 
 export function AppHeader({ title, subtitle, onMenuClick }: AppHeaderProps) {
   const { user, logout } = useAuth();
+  const { notifications, unreadCount, markAsRead } = useNotifications();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -30,6 +33,8 @@ export function AppHeader({ title, subtitle, onMenuClick }: AppHeaderProps) {
   const getInitials = (firstName?: string, lastName?: string) => {
     return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase() || 'U';
   };
+
+  const recentNotifications = notifications.slice(0, 5);
 
   return (
     <header className="h-16 bg-card border-b flex items-center justify-between px-6 sticky top-0 z-40">
@@ -65,33 +70,55 @@ export function AppHeader({ title, subtitle, onMenuClick }: AppHeaderProps) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                3
-              </span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80">
             <DropdownMenuLabel className="flex items-center justify-between">
               <span>Notifications</span>
-              <span className="text-xs text-muted-foreground font-normal">3 nouvelles</span>
+              <span className="text-xs text-muted-foreground font-normal">
+                {unreadCount} unread
+              </span>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="flex flex-col items-start gap-1 py-3 cursor-pointer">
-              <span className="font-medium text-sm">Nouvelle mission assignée</span>
-              <span className="text-xs text-muted-foreground">
-                Inspection des bureaux - Ngozi
-              </span>
-              <span className="text-xs text-primary">Il y a 5 min</span>
+            {recentNotifications.length === 0 && (
+              <DropdownMenuItem className="py-3 text-sm text-muted-foreground">
+                No notifications yet.
+              </DropdownMenuItem>
+            )}
+
+            {recentNotifications.map((item) => (
+              <DropdownMenuItem
+                key={item.id}
+                className="flex flex-col items-start gap-1 py-3 cursor-pointer"
+                onClick={() => {
+                  markAsRead(item.id);
+                  if (item.actionUrl) {
+                    navigate(item.actionUrl);
+                  }
+                }}
+              >
+                <span className="font-medium text-sm">{item.title}</span>
+                <span className="text-xs text-muted-foreground line-clamp-2">
+                  {item.message}
+                </span>
+                <span className="text-xs text-primary">{formatNotificationTime(item.timestamp)}</span>
+              </DropdownMenuItem>
+            ))}
+
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-center text-primary font-medium cursor-pointer"
+              onClick={() => navigate('/notifications')}
+            >
+              View all notifications
             </DropdownMenuItem>
-            <DropdownMenuItem className="flex flex-col items-start gap-1 py-3 cursor-pointer">
-              <span className="font-medium text-sm">Approbation en attente</span>
-              <span className="text-xs text-muted-foreground">
-                Formation service client requiert votre validation
-              </span>
-              <span className="text-xs text-primary">Il y a 1 heure</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="flex flex-col items-start gap-1 py-3 cursor-pointer">
-              <span className="font-medium text-sm">Mission terminée</span>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* User Profile */}
         <DropdownMenu>
@@ -143,17 +170,6 @@ export function AppHeader({ title, subtitle, onMenuClick }: AppHeaderProps) {
             >
               <LogOut className="mr-2 h-4 w-4" />
               Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-              <span className="text-xs text-muted-foreground">
-                Audit financier - Rapport à soumettre
-              </span>
-              <span className="text-xs text-primary">Il y a 2 heures</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-center text-primary font-medium cursor-pointer">
-              View all notifications
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

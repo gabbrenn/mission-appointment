@@ -60,6 +60,21 @@ class AuthService {
             },
         };
     }
+    // async register(data: {
+    //   email: string;
+    //   password: string;
+    //   firstName: string;
+    //   lastName: string;
+    //   role: 'admin' | 'user';
+    // }) {
+    //   // Check if email already exists
+    //   const existingUser = await this.userRepository.getUserByEmail(data.email);
+    //   if (existingUser) {
+    //     throw new Error('Email already in use');
+    //   }
+    //   data.password = await hashPassword(data.password);
+    //   return this.userRepository.createUser(data);
+    // }
     async logout(userId, ipAddress, userAgent) {
         // Log the logout action to AuditLog
         await this.auditLogRepository.createAuditLog({

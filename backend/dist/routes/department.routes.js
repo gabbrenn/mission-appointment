@@ -244,4 +244,86 @@ router.delete("/:id", auth_1.authenticate, (0, auth_1.authorize)(["ADMIN"]), (re
  *         description: Department not found
  */
 router.get("/:id/users", auth_1.authenticate, (0, auth_1.authorize)(["ADMIN", "HR", "HEAD_OF_DEPARTMENT"]), (req, res, next) => departmentController.getDepartmentUsers(req, res, next));
+/**
+ * @swagger
+ * /api/departments/{id}/remove-head:
+ *   patch:
+ *     summary: Remove department head
+ *     tags: [Departments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Department ID
+ *     responses:
+ *       200:
+ *         description: Department head removed successfully
+ *       400:
+ *         description: Department has no head to remove
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Department not found
+ */
+router.patch("/:id/remove-head", auth_1.authenticate, (0, auth_1.authorize)(["ADMIN"]), (req, res, next) => departmentController.removeDepartmentHead(req, res, next));
+/**
+ * @swagger
+ * /api/departments/{id}/transfer-users:
+ *   post:
+ *     summary: Bulk transfer users between departments
+ *     tags: [Departments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Source Department ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - toDepartmentId
+ *               - userIds
+ *             properties:
+ *               toDepartmentId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: Target department ID
+ *               userIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uuid
+ *                 description: Array of user IDs to transfer
+ *     responses:
+ *       200:
+ *         description: User transfer completed
+ *       400:
+ *         description: Invalid request data
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Department not found
+ */
+router.post("/:id/transfer-users", auth_1.authenticate, (0, auth_1.authorize)(["ADMIN", "HR"]), [
+    (0, express_validator_1.body)("toDepartmentId").isUUID().withMessage("toDepartmentId must be a valid UUID"),
+    (0, express_validator_1.body)("userIds").isArray().withMessage("userIds must be an array"),
+    (0, express_validator_1.body)("userIds.*").isUUID().withMessage("Each user ID must be a valid UUID"),
+], validateRequest, (req, res, next) => departmentController.bulkTransferUsers(req, res, next));
 exports.default = router;

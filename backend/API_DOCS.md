@@ -65,6 +65,15 @@ The API implements role-based access control with the following roles:
 - **HEAD_OF_DEPARTMENT** - Department-level management
 - **EMPLOYEE** - Basic employee access
 
+### Important Role Rules
+
+#### HEAD_OF_DEPARTMENT Role
+Users with `HEAD_OF_DEPARTMENT` role have special handling:
+- They cannot be assigned to a department as regular employees (via `departmentId`)
+- They are linked to departments as heads through the department's `headId` field
+- When promoting a user to `HEAD_OF_DEPARTMENT`, any existing `departmentId` is automatically cleared
+- To assign a department head, update the department's `headId` field, not the user's `departmentId`
+
 ### Testing with Sample Data
 
 Example login request:

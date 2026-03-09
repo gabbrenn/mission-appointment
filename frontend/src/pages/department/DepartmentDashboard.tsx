@@ -25,7 +25,9 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { formatCurrency, formatDate, mockMissions, mockUsers } from "@/lib/mockData";
+import { formatCurrency, formatDate, mockUsers } from "@/lib/mockData";
+import { missionService, Mission } from "@/services/mission.service";
+import { useEffect, useState } from "react";
 import {
   PieChart,
   Pie,
@@ -41,6 +43,25 @@ import {
 
 export default function DepartmentDashboard() {
   const navigate = useNavigate();
+  const [departmentMissions, setDepartmentMissions] = useState<Mission[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch department missions on component mount
+  useEffect(() => {
+    const fetchDepartmentMissions = async () => {
+      try {
+        setLoading(true);
+        const missions = await missionService.getDepartmentMissions();
+        setDepartmentMissions(missions);
+      } catch (error) {
+        console.error('Error fetching department missions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDepartmentMissions();
+  }, []);
 
   // Department stats
   const teamMembers = mockUsers.filter(u => u.role === 'employee');
@@ -51,9 +72,9 @@ export default function DepartmentDashboard() {
   const usedBudget = 18750000;
   const budgetPercentage = Math.round((usedBudget / departmentBudget) * 100);
 
-  // Pending approvals
-  const pendingApprovals = mockMissions.filter(
-    m => m.approvalStatus.find(a => a.role === 'Chef' && a.status === 'pending')
+  // Pending approvals from real data
+  const pendingApprovals = departmentMissions.filter(
+    m => m.status === 'PENDING_DEPARTMENT_APPROVAL' || m.status === 'IN_APPROVAL'
   );
 
   // Substitution requests
@@ -156,47 +177,68 @@ export default function DepartmentDashboard() {
               </Button>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {pendingApprovals.slice(0, 4).map((mission) => (
-                  <div 
-                    key={mission.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
-                    onClick={() => navigate(`/department/approvals/${mission.id}`)}
-                  >
-                    <div className="space-y-1">
-                      <p className="font-medium">{mission.title}</p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>
-                          {mission.assignedTo ? 
-                            `${mission.assignedTo.firstName} ${mission.assignedTo.lastName}` : 
-                            'Not assigned'
-                          }
-                        </span>
-                        <span>•</span>
-                        <span>{mission.destination}</span>
-                        <span>•</span>
-                        <span>{formatDate(mission.startDate)}</span>
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pendingApprovals.slice(0, 4).map((mission) => (
+                    <div 
+                      key={mission.id}
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
+                      onClick={() => navigate(`/department/approval/${mission.id}`)}
+                    >
+                      <div className="space-y-1">
+                        <p className="font-medium">{mission.title}</p>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <span>
+                            {mission.assignments && mission.assignments.length > 0 ? 
+                              `${mission.assignments[0].employee.firstName} ${mission.assignments[0].employee.lastName}` : 
+                              'Not assigned'
+                            }
+                          </span>
+                          <span>•</span>
+                          <span>{mission.destination}</span>
+                          <span>•</span>
+                          <span>{formatDate(mission.startDate)}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Badge variant="outline">{formatCurrency(Number(mission.estimatedBudget))}</Badge>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-8 w-8 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Handle reject action
+                            }}
+                          >
+                            <XCircle className="h-4 w-4 text-red-500" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="h-8 w-8 p-0 bg-green-600 hover:bg-green-700"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Handle approve action
+                            }}
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Badge variant="outline">{formatCurrency(mission.budget)}</Badge>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="h-8 w-8 p-0">
-                          <XCircle className="h-4 w-4 text-red-500" />
-                        </Button>
-                        <Button size="sm" className="h-8 w-8 p-0 bg-green-600 hover:bg-green-700">
-                          <CheckCircle className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {pendingApprovals.length === 0 && (
-                  <p className="text-center text-muted-foreground py-8">
-                    No pending approvals
-                  </p>
-                )}
-              </div>
+                  ))}
+                  {pendingApprovals.length === 0 && (
+                    <p className="text-center text-muted-foreground py-8">
+                      No pending approvals
+                    </p>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 
