@@ -39,7 +39,6 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { departments, mockUsers } from "@/lib/mockData";
 import { departmentService } from "@/services/department.service";
 import { userService } from "@/services/user.service";
 import { toast } from "sonner";
@@ -77,22 +76,6 @@ export default function AdminDepartments() {
   const [isLoadingHeads, setIsLoadingHeads] = useState(false);
   const [isLoadingDepartments, setIsLoadingDepartments] = useState(false);
 
-  // Mock departments data (kept for error fixing)
-  const mockDepartmentData: Department[] = departments.map((name, index) => ({
-    id: `dept-${index + 1}`,
-    name,
-    code: `DEP-${String(index + 1).padStart(3, '0')}`,
-    headId: mockUsers[index % mockUsers.length]?.id || '1',
-    headName: mockUsers[index % mockUsers.length] 
-      ? `${mockUsers[index % mockUsers.length].firstName} ${mockUsers[index % mockUsers.length].lastName}`
-      : 'Unassigned',
-    employeeCount: 8 + Math.floor(Math.random() * 20),
-    budget: 15000000 + Math.floor(Math.random() * 25000000),
-    description: `Department responsible for operations of ${name.toLowerCase()}.`,
-    location: ['Bujumbura', 'Gitega', 'Ngozi'][index % 3],
-    status: index % 5 === 4 ? ('inactive' as const) : ('active' as const),
-  }));
-
   const [newDepartment, setNewDepartment] = useState({
     name: '',
     code: '',
@@ -101,8 +84,7 @@ export default function AdminDepartments() {
     description: '',
   });
 
-  // Initialize with mock data, will be replaced with API data
-  const [departmentList, setDepartmentList] = useState<Department[]>(mockDepartmentData);
+  const [departmentList, setDepartmentList] = useState<Department[]>([]);
 
   // Fetch available department heads on component mount
   useEffect(() => {
@@ -114,9 +96,9 @@ export default function AdminDepartments() {
         // Store all users for head name resolution
         setAllUsers(allUsersList);
         
-        // Filter users with HEAD_OF_DEPARTMENT role and no assigned department for dropdown
+        // Filter users with HEAD_OF_DEPARTMENT role
         const availableHeads = allUsersList.filter(
-          (user) => user.role === 'HEAD_OF_DEPARTMENT' && !user.departmentId
+          (user) => user.role === 'HEAD_OF_DEPARTMENT'
         );
         
         setAvailableDepartmentHeads(availableHeads);
@@ -139,13 +121,19 @@ export default function AdminDepartments() {
         const fetchedDepartments = await departmentService.getAllDepartments();
         
         // Map API response to Department interface
-        const mappedDepartments: Department[] = fetchedDepartments.map((dept: any) => {
-          const headUser = dept.headId ? allUsers.find(u => u.id === dept.headId) : null;
+        const mappedDepartments: Department[] = fetchedDepartments.map((dept: Record<string, any>) => {
+          let headUser = dept.headId ? allUsers.find(u => u.id === dept.headId) : null;
+          
+          // Fallback: If no headId on department, check if any HEAD_OF_DEPARTMENT user is in this department
+          if (!headUser) {
+            headUser = allUsers.find(u => u.departmentId === dept.id && u.role === 'HEAD_OF_DEPARTMENT') || null;
+          }
+
           return {
             id: dept.id,
             name: dept.name,
             code: dept.code,
-            headId: dept.headId || '',
+            headId: headUser?.id || dept.headId || '',
             headName: headUser ? `${headUser.firstName} ${headUser.lastName}` : 'Unassigned',
             employeeCount: dept.users?.length || 0,
             budget: 0,
@@ -158,9 +146,7 @@ export default function AdminDepartments() {
         setDepartmentList(mappedDepartments);
       } catch (error) {
         console.error('Failed to fetch departments:', error);
-        // Keep mock data as fallback
-        setDepartmentList(mockDepartmentData);
-        toast.error('Failed to load departments, using local data');
+        toast.error('Failed to load departments');
       } finally {
         setIsLoadingDepartments(false);
       }
@@ -170,7 +156,7 @@ export default function AdminDepartments() {
     if (allUsers.length > 0) {
       fetchDepartments();
     }
-  }, [allUsers, mockDepartmentData]);
+  }, [allUsers]);
 
   const filteredDepartments = departmentList.filter(dept =>
     dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -398,8 +384,8 @@ export default function AdminDepartments() {
                       <SelectValue placeholder={isLoadingHeads ? "Loading..." : "Select a head"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {availableDepartmentHeads.length > 0 ? (
-                        availableDepartmentHeads.map(user => (
+                      {availableDepartmentHeads.filter(h => !h.departmentId).length > 0 ? (
+                        availableDepartmentHeads.filter(h => !h.departmentId).map(user => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.firstName} {user.lastName}
                           </SelectItem>
@@ -646,8 +632,8 @@ export default function AdminDepartments() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">None</SelectItem>
-                      {availableDepartmentHeads.length > 0 ? (
-                        availableDepartmentHeads.map(user => (
+                      {availableDepartmentHeads.filter(h => !h.departmentId || h.id === editingDepartment.headId).length > 0 ? (
+                        availableDepartmentHeads.filter(h => !h.departmentId || h.id === editingDepartment.headId).map(user => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.firstName} {user.lastName}
                           </SelectItem>
