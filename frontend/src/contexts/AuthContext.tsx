@@ -54,15 +54,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: `Welcome back, ${response.user.firstName}!`,
       });
 
+      if (response.user.isFirstLogin) {
+        navigate('/first-login');
+        return;
+      }
+
       // Navigate based on role
       const roleRoutes: Record<string, string> = {
         ADMIN: '/admin',
-        DIRECTOR_GENERAL: '/director',
-        HEAD_OF_DEPARTMENT: '/department',
-        DEPARTMENT_HEAD: '/department',
-        FINANCE: '/finance',
-        HR: '/hr',
-        EMPLOYEE: '/employee',
       };
 
       const route = roleRoutes[response.user.role] || '/employee';

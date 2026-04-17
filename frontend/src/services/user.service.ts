@@ -7,9 +7,7 @@ import { apiClient } from '@/lib/api';
 import { UserSkill } from '@/types/api.types';
 
 export interface CreateUserDto {
-  employeeId: string;
   email: string;
-  password: string;
   firstName: string;
   lastName: string;
   role: string;

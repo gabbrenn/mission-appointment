@@ -71,6 +71,7 @@ const navItems: Record<UserRole, NavItem[]> = {
   ],
   admin: [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { label: "Create Mission", href: "/admin/create-mission", icon: ClipboardList },
     { label: "Missions", href: "/admin/missions", icon: Briefcase },
     { label: "Users", href: "/admin/users", icon: UserCog },
     // { label: "Roles", href: "/admin/roles", icon: Shield },
@@ -97,7 +98,7 @@ export function AppSidebar({ userRole, userName, userEmail }: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const {user, logout } = useAuth();
-  const roleNav = navItems[userRole];
+  const roleNav = navItems[userRole] || [];
 
   const handleLogout = async () => {
     await logout();

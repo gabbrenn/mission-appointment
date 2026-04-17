@@ -164,7 +164,7 @@ export default function AdminDepartments() {
   );
 
   const handleAddDepartment = async () => {
-    if (!newDepartment.name || !newDepartment.code) {
+    if (!newDepartment.name) {
       toast.error("Please fill in required fields");
       return;
     }
@@ -177,7 +177,6 @@ export default function AdminDepartments() {
 
       const created = await departmentService.createDepartment({
         name: newDepartment.name.trim(),
-        code: newDepartment.code.trim(),
         description: newDepartment.description?.trim() || undefined,
         headId: newDepartment.headId && newDepartment.headId !== 'none' ? newDepartment.headId : undefined,
         budgetAllocation,
@@ -215,7 +214,7 @@ export default function AdminDepartments() {
   };
 
   const handleEditDepartment = async () => {
-    if (!editingDepartment || !editingDepartment.name || !editingDepartment.code) {
+    if (!editingDepartment || !editingDepartment.name) {
       toast.error("Please fill in required fields");
       return;
     }
@@ -227,7 +226,6 @@ export default function AdminDepartments() {
         editingDepartment.id,
         {
           name: editingDepartment.name.trim(),
-          code: editingDepartment.code.trim(),
           description: editingDepartment.description?.trim() || undefined,
           headId: editingDepartment.headId && editingDepartment.headId !== 'none' ? editingDepartment.headId : undefined,
           budgetAllocation: editingDepartment.budget > 0 ? editingDepartment.budget : undefined,
@@ -356,20 +354,12 @@ export default function AdminDepartments() {
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
+                  <div className="space-y-2 sm:col-span-2">
                     <Label>Department Name *</Label>
                     <Input
                       placeholder="Ex: Marketing"
                       value={newDepartment.name}
                       onChange={(e) => setNewDepartment({ ...newDepartment, name: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Code *</Label>
-                    <Input
-                      placeholder="Ex: MKT-001"
-                      value={newDepartment.code}
-                      onChange={(e) => setNewDepartment({ ...newDepartment, code: e.target.value })}
                     />
                   </div>
                 </div>
@@ -598,18 +588,11 @@ export default function AdminDepartments() {
             {editingDepartment && (
               <div className="space-y-4 py-4">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
+                  <div className="space-y-2 sm:col-span-2">
                     <Label>Department Name *</Label>
                     <Input
                       value={editingDepartment.name}
                       onChange={(e) => setEditingDepartment({ ...editingDepartment, name: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Code *</Label>
-                    <Input
-                      value={editingDepartment.code}
-                      onChange={(e) => setEditingDepartment({ ...editingDepartment, code: e.target.value })}
                     />
                   </div>
                 </div>

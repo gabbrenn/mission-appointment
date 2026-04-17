@@ -85,7 +85,6 @@ export default function AdminUsers() {
     lastName: "",
     email: "",
     employeeId: "",
-    password: "",
     role: "EMPLOYEE",
     departmentId: "",
     phone: "",
@@ -149,11 +148,13 @@ export default function AdminUsers() {
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.employeeId.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    return matchesSearch && matchesRole;
+    const isActive = user.accountStatus === 'ACTIVE';
+    const isAdmin = user.role === 'ADMIN';
+    return matchesSearch && matchesRole && isActive && !isAdmin;
   });
 
   const handleCreate = async () => {
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.employeeId || !formData.password) {
+    if (!formData.firstName || !formData.lastName || !formData.email) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -161,9 +162,7 @@ export default function AdminUsers() {
     try {
       setSubmitting(true);
       const createData: CreateUserDto = {
-        employeeId: formData.employeeId,
         email: formData.email,
-        password: formData.password,
         firstName: formData.firstName,
         lastName: formData.lastName,
         role: formData.role,
@@ -259,7 +258,6 @@ export default function AdminUsers() {
       lastName: user.lastName,
       email: user.email,
       employeeId: user.employeeId,
-      password: "", // Don't populate password for editing
       role: user.role,
       departmentId: user.departmentId || "",
       phone: user.phone || "",
@@ -274,7 +272,6 @@ export default function AdminUsers() {
       lastName: "",
       email: "",
       employeeId: "",
-      password: "",
       role: "EMPLOYEE",
       departmentId: "",
       phone: "",
@@ -350,15 +347,6 @@ export default function AdminUsers() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="employeeId">Employee ID</Label>
-                    <Input
-                      id="employeeId"
-                      value={formData.employeeId}
-                      onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
-                      placeholder="EMP001"
-                    />
-                  </div>
-                  <div className="space-y-2">
                     <Label htmlFor="phone">Phone</Label>
                     <Input
                       id="phone"
@@ -367,25 +355,15 @@ export default function AdminUsers() {
                       placeholder="+257 22 123 456"
                     />
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="••••••••"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="position">Position</Label>
-                  <Input
-                    id="position"
-                    value={formData.position}
-                    onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                    placeholder="Software Engineer"
-                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="position">Position</Label>
+                    <Input
+                      id="position"
+                      value={formData.position}
+                      onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                      placeholder="Software Engineer"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
@@ -623,15 +601,6 @@ export default function AdminUsers() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="editEmployeeId">Employee ID</Label>
-                  <Input
-                    id="editEmployeeId"
-                    value={formData.employeeId}
-                    onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
-                    placeholder="EMP001"
-                  />
-                </div>
-                <div className="space-y-2">
                   <Label htmlFor="editPhone">Phone</Label>
                   <Input
                     id="editPhone"
@@ -640,15 +609,15 @@ export default function AdminUsers() {
                     placeholder="+257 22 123 456"
                   />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="editPosition">Position</Label>
-                <Input
-                  id="editPosition"
-                  value={formData.position}
-                  onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                  placeholder="Software Engineer"
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="editPosition">Position</Label>
+                  <Input
+                    id="editPosition"
+                    value={formData.position}
+                    onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                    placeholder="Software Engineer"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="editEmail">Email</Label>

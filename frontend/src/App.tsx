@@ -12,6 +12,7 @@ import Unauthorized from "./pages/Unauthorized";
 
 // Auth Pages
 import PasswordReset from "./pages/auth/PasswordReset";
+import FirstLogin from "./pages/auth/FirstLogin";
 
 // Employee Pages
 import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
@@ -83,37 +84,42 @@ const App = () => (
             <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/first-login" element={
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR_GENERAL', 'ADMIN']}>
+                <FirstLogin />
+              </ProtectedRoute>
+            } />
             <Route path="/password-reset" element={<PasswordReset />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             
             {/* Employee Routes */}
             <Route path="/employee" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR_GENERAL', 'ADMIN']}>
                 <EmployeeDashboard />
               </ProtectedRoute>
             } />
             <Route path="/employee/missions" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR_GENERAL', 'ADMIN']}>
                 <MissionsList />
               </ProtectedRoute>
             } />
             <Route path="/employee/mission/:id" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR_GENERAL', 'ADMIN']}>
                 <MissionDetails />
               </ProtectedRoute>
             } />
             <Route path="/employee/substitution/:missionId" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR_GENERAL', 'ADMIN']}>
                 <SubstitutionForm />
               </ProtectedRoute>
             } />
             <Route path="/employee/report/:missionId" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR_GENERAL', 'ADMIN']}>
                 <ReportForm />
               </ProtectedRoute>
             } />
             <Route path="/employee/reports" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR_GENERAL', 'ADMIN']}>
                 <ReportsList />
               </ProtectedRoute>
             } />
@@ -124,6 +130,7 @@ const App = () => (
             } />
             
             {/* Department Head Routes */}
+            {/*
             <Route path="/department" element={
               <ProtectedRoute allowedRoles={['HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'ADMIN']}>
                 <DepartmentDashboard />
@@ -250,6 +257,11 @@ const App = () => (
             <Route path="/admin/users" element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <AdminUsers />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/create-mission" element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <CreateMission />
               </ProtectedRoute>
             } />
             <Route path="/admin/missions" element={

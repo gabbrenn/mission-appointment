@@ -146,9 +146,9 @@ export interface PaginatedResponse<T> {
 // ===== DTO Types =====
 
 export interface CreateUserDto {
-  employeeId: string;
+  employeeId?: string;
   email: string;
-  password: string;
+  password?: string;
   firstName: string;
   lastName: string;
   role: Role;
@@ -171,7 +171,7 @@ export interface UpdateUserDto {
 
 export interface CreateDepartmentDto {
   name: string;
-  code: string;
+  code?: string;
   description?: string;
   location?: string;
   headId?: string;
@@ -212,9 +212,8 @@ export interface Skill {
 export interface UserSkill {
   id: string;
   userId: string;
-  skillId: string;
-  skill: Skill;
-  createdAt: string;
+  skillName: string;
+  createdAt?: string;
 }
 
 // ===== Form Types =====

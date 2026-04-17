@@ -27,14 +27,13 @@ export default function Login() {
   // Redirect if already logged in
   useEffect(() => {
     if (isAuthenticated && user) {
+      if (user.isFirstLogin) {
+        navigate('/first-login', { replace: true });
+        return;
+      }
+      
       const roleRoutes: Record<string, string> = {
         ADMIN: '/admin',
-        DIRECTOR_GENERAL: '/director',
-        HEAD_OF_DEPARTMENT: '/department',
-        DEPARTMENT_HEAD: '/department',
-        FINANCE: '/finance',
-        HR: '/hr',
-        EMPLOYEE: '/employee',
       };
       const route = roleRoutes[user.role] || '/employee';
       navigate(route, { replace: true });

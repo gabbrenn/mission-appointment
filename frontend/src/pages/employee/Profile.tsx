@@ -23,26 +23,41 @@ import {
   TrendingUp,
   MapPin,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { mockUsers } from "@/lib/mockData";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { userService } from "@/services/user.service";
+import { UserSkill } from "@/types/api.types";
 
 export default function EmployeeProfile() {
+  const { user } = useAuth();
   // Mock current user
   const currentUser = mockUsers.find(u => u.role === 'employee') || mockUsers[0];
   
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: currentUser.firstName,
-    lastName: currentUser.lastName,
-    email: currentUser.email,
-    phone: '+257 79 123 456',
+    firstName: user?.firstName || currentUser.firstName,
+    lastName: user?.lastName || currentUser.lastName,
+    email: user?.email || currentUser.email,
+    phone: user?.phone || '+257 79 123 456',
     department: currentUser.department,
   });
   
-  const [isAvailable, setIsAvailable] = useState(currentUser.isAvailable);
-  const [skills, setSkills] = useState(currentUser.skills);
+  const [isAvailable, setIsAvailable] = useState(true);
+  const [skills, setSkills] = useState<UserSkill[]>([]);
   const [newSkill, setNewSkill] = useState("");
+
+  useEffect(() => {
+    if (user?.id) {
+      userService.getUserSkills(user.id)
+        .then(fetched => setSkills(fetched))
+        .catch(err => {
+          console.error("Failed to load skills", err);
+          toast.error("Failed to load skills");
+        });
+    }
+  }, [user?.id]);
   
   // Password change
   const [passwordData, setPasswordData] = useState({
@@ -65,16 +80,29 @@ export default function EmployeeProfile() {
     setIsEditing(false);
   };
 
-  const handleAddSkill = () => {
-    if (newSkill.trim() && !skills.includes(newSkill.trim())) {
-      setSkills([...skills, newSkill.trim()]);
-      setNewSkill("");
-      toast.success("Skill added");
+  const handleAddSkill = async () => {
+    if (newSkill.trim() && !skills.some(s => s.skillName.toLowerCase() === newSkill.trim().toLowerCase()) && user?.id) {
+      try {
+        const added = await userService.addUserSkill(user.id, newSkill.trim());
+        setSkills([...skills, added]);
+        setNewSkill("");
+        toast.success("Skill added");
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || "Failed to add skill");
+      }
     }
   };
 
-  const handleRemoveSkill = (skill: string) => {
-    setSkills(skills.filter(s => s !== skill));
+  const handleRemoveSkill = async (skill: UserSkill) => {
+    if (user?.id) {
+      try {
+        await userService.removeUserSkill(user.id, skill.id);
+        setSkills(skills.filter(s => s.id !== skill.id));
+        toast.success("Skill removed");
+      } catch(err: any) {
+        toast.error(err.response?.data?.message || "Failed to remove skill");
+      }
+    }
   };
 
   const handleChangePassword = () => {
@@ -311,14 +339,14 @@ export default function EmployeeProfile() {
                 <div>
                   <Label className="mb-3 block">Current Skills</Label>
                   <div className="flex flex-wrap gap-2">
-                    {skills.map((skill, index) => (
+                    {skills.map((skill) => (
                       <Badge 
-                        key={index} 
+                        key={skill.id} 
                         variant="secondary"
                         className="px-3 py-1 cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
                         onClick={() => handleRemoveSkill(skill)}
                       >
-                        {skill} ×
+                        {skill.skillName} ×
                       </Badge>
                     ))}
                     {skills.length === 0 && (
@@ -348,15 +376,14 @@ export default function EmployeeProfile() {
                   <Label className="mb-3 block">Suggested Skills</Label>
                   <div className="flex flex-wrap gap-2">
                     {['Inspection', 'Training', 'Audit', 'Logistics', 'Communication', 'Project Management', 'Advanced Excel', 'Report Writing']
-                      .filter(s => !skills.includes(s))
+                      .filter(s => !skills.some(userSkill => userSkill.skillName === s))
                       .map((skill, index) => (
                         <Badge 
                           key={index} 
                           variant="outline"
                           className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
                           onClick={() => {
-                            setSkills([...skills, skill]);
-                            toast.success(`Skill "${skill}" added`);
+                            setNewSkill(skill);
                           }}
                         >
                           + {skill}

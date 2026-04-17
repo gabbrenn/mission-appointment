@@ -7,7 +7,7 @@ import { apiClient, ApiResponse } from '@/lib/api';
 
 export interface CreateDepartmentDto {
   name: string;
-  code: string;
+  code?: string;
   description?: string;
   headId?: string;
   budgetAllocation?: number;

@@ -18,6 +18,7 @@ export interface User {
   role: string;
   phone?: string;
   position?: string;
+  isFirstLogin?: boolean;
 }
 
 export interface LoginResponse {
