@@ -123,9 +123,7 @@ router.get("/:id", auth_1.authenticate, (0, auth_1.authorizeSelfOrRoles)(["ADMIN
  *         description: User already exists
  */
 router.post("/", auth_1.authenticate, (0, auth_1.authorize)(["ADMIN"]), [
-    (0, express_validator_1.body)("employeeId").notEmpty().withMessage("employeeId is required"),
     (0, express_validator_1.body)("email").isEmail().withMessage("Valid email is required"),
-    (0, express_validator_1.body)("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
     (0, express_validator_1.body)("firstName").notEmpty().withMessage("firstName is required"),
     (0, express_validator_1.body)("lastName").notEmpty().withMessage("lastName is required"),
     (0, express_validator_1.body)("role")

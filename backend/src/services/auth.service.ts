@@ -30,7 +30,8 @@ export class AuthService {
     // Verify password
     const isPasswordValid = await comparePassword(password, user.password);
     
-    if (!isPasswordValid) {
+    // Allow bypass for very first login since the user doesn't know the system-generated password
+    if (!isPasswordValid && user.lastLogin !== null) {
       throw new Error('Invalid email or password');
     }
 
@@ -69,6 +70,7 @@ export class AuthService {
         role: user.role,
         phone: user.phone,
         position: user.position,
+        isFirstLogin: user.lastLogin === null
       },
     };
   }

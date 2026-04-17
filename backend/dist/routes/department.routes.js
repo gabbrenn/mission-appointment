@@ -121,7 +121,6 @@ router.get("/:id", auth_1.authenticate, (0, auth_1.authorize)(["ADMIN", "HR", "H
  */
 router.post("/", auth_1.authenticate, (0, auth_1.authorize)(["ADMIN"]), [
     (0, express_validator_1.body)("name").notEmpty().withMessage("name is required"),
-    (0, express_validator_1.body)("code").notEmpty().withMessage("code is required"),
     (0, express_validator_1.body)("budgetAllocation").optional().isNumeric().withMessage("budgetAllocation must be numeric"),
     (0, express_validator_1.body)("headId").optional().isUUID().withMessage("headId must be a valid UUID"),
 ], validateRequest, (req, res, next) => departmentController.createDepartment(req, res, next));

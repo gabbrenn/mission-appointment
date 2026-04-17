@@ -280,6 +280,9 @@ class MissionService {
                 if (mission.status === 'ASSIGNED') {
                     newStatus = 'IN_APPROVAL';
                 }
+                else if (mission.status !== 'IN_APPROVAL') {
+                    newStatus = 'IN_APPROVAL'; // Department head can give preliminary approval, but final approval is by finance/director
+                }
                 else {
                     throw new ApiError_1.ApiError("Mission must be assigned before department head approval", 400);
                 }

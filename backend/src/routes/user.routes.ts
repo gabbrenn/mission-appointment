@@ -140,9 +140,7 @@ router.post(
     authenticate,
     authorize(["ADMIN"]),
     [
-        body("employeeId").notEmpty().withMessage("employeeId is required"),
         body("email").isEmail().withMessage("Valid email is required"),
-        body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
         body("firstName").notEmpty().withMessage("firstName is required"),
         body("lastName").notEmpty().withMessage("lastName is required"),
         body("role")

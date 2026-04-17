@@ -18,6 +18,8 @@ class UserService {
         // Auto-generate employeeId if not provided
         const employeeId = data.employeeId || await this.generateEmployeeId();
         await this.ensureUserUnique(data.email, employeeId);
+        // Auto-generate password if not provided
+        const passwordToHash = data.password || await this.generateRandomPassword();
         // Validate HEAD_OF_DEPARTMENT role constraints
         // Department heads should not have departmentId - they're linked through departmentLed relationship
         if (data.role === client_1.Role.HEAD_OF_DEPARTMENT && data.departmentId) {
@@ -33,7 +35,7 @@ class UserService {
                 throw new ApiError_1.ApiError("Cannot assign user to inactive department", 400);
             }
         }
-        const hashedPassword = await (0, password_1.hashPassword)(data.password);
+        const hashedPassword = await (0, password_1.hashPassword)(passwordToHash);
         return this.userRepository.createUser({
             ...data,
             employeeId,
@@ -199,6 +201,10 @@ class UserService {
             return this.generateEmployeeId();
         }
         return employeeId;
+    }
+    async generateRandomPassword() {
+        // Basic 8-character random password
+        return Math.random().toString(36).slice(-8) + "!1A"; // ensure it has a special char, number and capital letter
     }
 }
 exports.UserService = UserService;

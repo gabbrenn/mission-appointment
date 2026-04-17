@@ -1,9 +1,9 @@
 import { AvailabilityStatus, AccountStatus, Role } from "@prisma/client";
 
 export interface RegisterUserDto {
-    employeeId: string;
+    employeeId?: string;
     email: string;
-    password: string;
+    password?: string;
     firstName: string;
     lastName: string;
     departmentId?: string;

@@ -138,7 +138,6 @@ router.post(
     authorize(["ADMIN"]),
     [
         body("name").notEmpty().withMessage("name is required"),
-        body("code").notEmpty().withMessage("code is required"),
         body("budgetAllocation").optional().isNumeric().withMessage("budgetAllocation must be numeric"),
         body("headId").optional().isUUID().withMessage("headId must be a valid UUID"),
     ],

@@ -205,7 +205,7 @@ router.get("/:id", auth_1.authenticate, [(0, express_validator_1.param)("id").is
  *       200:
  *         description: Mission updated successfully
  */
-router.put("/:id", auth_1.authenticate, (0, auth_1.authorize)(["ADMIN", "DIRECTOR", "HEAD_OF_DEPARTMENT"]), [
+router.put("/:id", auth_1.authenticate, (0, auth_1.authorize)(["ADMIN", "DIRECTOR", "HEAD_OF_DEPARTMENT", 'EMPLOYEE']), [
     (0, express_validator_1.param)("id").isUUID().withMessage("Mission ID must be valid UUID"),
     (0, express_validator_1.body)("startDate").optional().isISO8601().withMessage("Start date must be valid ISO date"),
     (0, express_validator_1.body)("endDate").optional().isISO8601().withMessage("End date must be valid ISO date"),

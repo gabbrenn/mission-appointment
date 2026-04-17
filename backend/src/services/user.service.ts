@@ -24,6 +24,9 @@ export class UserService {
         
         await this.ensureUserUnique(data.email, employeeId);
         
+        // Auto-generate password if not provided
+        const passwordToHash = data.password || await this.generateRandomPassword();
+
         // Validate HEAD_OF_DEPARTMENT role constraints
         // Department heads should not have departmentId - they're linked through departmentLed relationship
         if (data.role === Role.HEAD_OF_DEPARTMENT && data.departmentId) {
@@ -41,7 +44,7 @@ export class UserService {
             }
         }
         
-        const hashedPassword = await hashPassword(data.password);
+        const hashedPassword = await hashPassword(passwordToHash);
 
         return this.userRepository.createUser({
             ...data,
@@ -245,5 +248,10 @@ export class UserService {
         }
         
         return employeeId;
+    }
+
+    private async generateRandomPassword(): Promise<string> {
+        // Basic 8-character random password
+        return Math.random().toString(36).slice(-8) + "!1A"; // ensure it has a special char, number and capital letter
     }
 }

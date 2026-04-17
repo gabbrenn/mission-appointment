@@ -26,14 +26,16 @@ export class DepartmentService {
     }
 
     async createDepartment(data: CreateDepartmentDto) {
-        await this.ensureUnique(data.name, data.code);
-        
+        const code = data.code || await this.generateDepartmentCode(data.name); 
+
+        await this.ensureUnique(data.name, code);
+
         // Validate department head if provided
         if (data.headId) {
             await this.validateDepartmentHead(data.headId);
         }
-        
-        return this.departmentRepository.create(data);
+
+        return this.departmentRepository.create({ ...data, code });
     }
 
     async updateDepartment(id: string, data: UpdateDepartmentDto) {
@@ -155,6 +157,22 @@ export class DepartmentService {
             failed: results.filter(r => !r.success).length,
             results
         };
+    }
+
+    private async generateDepartmentCode(name: string): Promise<string> {
+        // Simple code generator: first 3 letters of name + random 3 numbers
+        const prefix = name.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
+        let result = `${prefix}-`;
+        for (let i = 0; i < 3; i++) {
+            result += Math.floor(Math.random() * 10);
+        }
+        
+        const existing = await this.departmentRepository.findByCode(result);
+        if (existing) {
+            return this.generateDepartmentCode(name);
+        }
+
+        return result;
     }
 
     private async ensureUnique(name: string, code: string) {

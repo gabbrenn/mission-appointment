@@ -1,6 +1,6 @@
 export interface CreateDepartmentDto {
     name: string;
-    code: string;
+    code?: string;
     description?: string;
     budgetAllocation?: number;
     status?: string;
