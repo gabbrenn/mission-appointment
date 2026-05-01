@@ -41,10 +41,10 @@ export default function SubstitutionForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const reasonOptions = [
-    { value: 'MEDICAL', label: 'Raison de Santé' },
-    { value: 'FAMILY_EMERGENCY', label: 'Urgence Familiale' },
-    { value: 'CONFLICT_OF_INTEREST', label: 'Conflit de Planning / Intérêt' },
-    { value: 'OTHER', label: 'Autre Raison' },
+    { value: 'MEDICAL', label: 'Health Reason' },
+    { value: 'FAMILY_EMERGENCY', label: 'Family Emergency' },
+    { value: 'CONFLICT_OF_INTEREST', label: 'Planning / Interest Conflict' },
+    { value: 'OTHER', label: 'Other Reason' },
   ];
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,7 +82,7 @@ export default function SubstitutionForm() {
             detailedReason: explanation,
             supportingDocuments: files.map(f => f.name) // In a real app, upload files first and send URLs
         });
-        toast.success("Demande de remplacement soumise avec succès");
+        toast.success("Substitution request submitted successfully");
         navigate('/employee');
     } catch (err: any) {
         console.error(err);

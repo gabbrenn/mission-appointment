@@ -53,10 +53,10 @@ export default function SubstitutionReview() {
     setIsProcessing(true);
     try {
         await missionService.processSubstitutionRequest(requestId, 'APPROVED', comments);
-        toast.success("Substitution approuvée avec succès");
+        toast.success("Substitution approved successfully");
         navigate('/department');
     } catch (err: any) {
-        toast.error(err.response?.data?.message || "Erreur lors de l'approbation");
+        toast.error(err.response?.data?.message || "Error during approval");
     } finally {
         setIsProcessing(false);
     }
@@ -72,10 +72,10 @@ export default function SubstitutionReview() {
     setIsProcessing(true);
     try {
         await missionService.processSubstitutionRequest(requestId, 'REJECTED', comments);
-        toast.success("Demande de substitution refusée");
+        toast.success("Substitution request rejected");
         navigate('/department');
     } catch (err: any) {
-        toast.error(err.response?.data?.message || "Erreur lors du refus");
+        toast.error(err.response?.data?.message || "Error during rejection");
     } finally {
         setIsProcessing(false);
     }
@@ -112,10 +112,10 @@ export default function SubstitutionReview() {
           </Button>
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-foreground">
-              Examen de Demande de Substitution
+              Substitution Request Review
             </h1>
             <p className="text-muted-foreground">
-              Évaluer et approuver la demande de remplacement
+              Evaluate and approve the replacement request
             </p>
           </div>
           <Badge variant="outline" className="text-lg px-4 py-2">
@@ -131,7 +131,7 @@ export default function SubstitutionReview() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  Mission Originale
+                  Original Mission
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -162,7 +162,7 @@ export default function SubstitutionReview() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5 text-amber-600" />
-                  Détails de la Demande
+                  Request Details
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -188,7 +188,7 @@ export default function SubstitutionReview() {
                 <Separator />
 
                 <div>
-                  <h4 className="font-medium mb-2">Explication</h4>
+                  <h4 className="font-medium mb-2">Explanation</h4>
                   <p className="text-sm text-muted-foreground bg-white dark:bg-gray-800 p-3 rounded-lg">
                     {request.detailedReason}
                   </p>
@@ -196,7 +196,7 @@ export default function SubstitutionReview() {
 
                 {request.supportingDocuments && request.supportingDocuments.length > 0 && (
                   <div>
-                    <h4 className="font-medium mb-2">Documents Joints</h4>
+                    <h4 className="font-medium mb-2">Attached Documents</h4>
                     <div className="flex flex-wrap gap-2">
                       {request.supportingDocuments.map((doc: string, index: number) => (
                         <Badge key={index} variant="outline" className="cursor-pointer hover:bg-primary/10">
@@ -209,7 +209,7 @@ export default function SubstitutionReview() {
                 )}
 
                 <div className="text-sm text-muted-foreground">
-                  Demande soumise le: {formatDate(request.createdAt)}
+                  Request submitted on: {formatDate(request.createdAt)}
                 </div>
               </CardContent>
             </Card>
@@ -217,14 +217,14 @@ export default function SubstitutionReview() {
             {/* Comments */}
             <Card>
               <CardHeader>
-                <CardTitle>Commentaires</CardTitle>
+                <CardTitle>Comments</CardTitle>
                 <CardDescription>
-                  Ajoutez vos observations ou justifications
+                  Add your observations or justifications
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Textarea
-                  placeholder="Entrez vos commentaires concernant cette demande de substitution..."
+                  placeholder="Enter your comments regarding this substitution request..."
                   value={comments}
                   onChange={(e) => setComments(e.target.value)}
                   rows={4}
@@ -239,7 +239,7 @@ export default function SubstitutionReview() {
             {/* Original Employee Info */}
             <Card>
               <CardHeader>
-                <CardTitle>Employé Original</CardTitle>
+                <CardTitle>Original Employee</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
@@ -262,16 +262,16 @@ export default function SubstitutionReview() {
 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Département</span>
+                    <span className="text-muted-foreground">Department</span>
                     <span>{originalEmployee.department}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Score Équité</span>
+                    <span className="text-muted-foreground">Fairness Score</span>
                     <span className="font-semibold">{originalEmployee.fairnessScore}%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Statut</span>
-                    <Badge variant="secondary">Demande de substitution</Badge>
+                    <span className="text-muted-foreground">Status</span>
+                    <Badge variant="secondary">Substitution request</Badge>
                   </div>
                 </div>
               </CardContent>
@@ -286,7 +286,7 @@ export default function SubstitutionReview() {
                   disabled={isProcessing}
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  {isProcessing ? 'Traitement...' : 'Approuver la Substitution'}
+                  {isProcessing ? 'Processing...' : 'Approve Substitution'}
                 </Button>
                 
                 <Button 
@@ -296,7 +296,7 @@ export default function SubstitutionReview() {
                   disabled={isProcessing}
                 >
                   <XCircle className="h-4 w-4 mr-2" />
-                  Refuser la Demande
+                  Reject Request
                 </Button>
               </CardContent>
             </Card>

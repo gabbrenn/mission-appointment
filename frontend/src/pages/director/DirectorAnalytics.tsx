@@ -87,28 +87,28 @@ export default function DirectorAnalytics() {
     { month: 'May', missions: 28, budget: 21000000, approved: 26, efficiency: 93 },
     { month: 'Jun', missions: 32, budget: 24500000, approved: 30, efficiency: 94 },
     { month: 'Jul', missions: 30, budget: 23000000, approved: 28, efficiency: 93 },
-    { month: 'Août', missions: 26, budget: 19500000, approved: 24, efficiency: 92 },
+    { month: 'Aug', missions: 26, budget: 19500000, approved: 24, efficiency: 92 },
     { month: 'Sep', missions: 33, budget: 25200000, approved: 31, efficiency: 94 },
     { month: 'Oct', missions: 0, budget: 0, approved: 0, efficiency: 0 },
     { month: 'Nov', missions: 0, budget: 0, approved: 0, efficiency: 0 },
-    { month: 'Déc', missions: 0, budget: 0, approved: 0, efficiency: 0 },
+    { month: 'Dec', missions: 0, budget: 0, approved: 0, efficiency: 0 },
   ];
 
   // Mission types distribution
   const missionTypes = [
     { name: 'Inspection', value: 85, color: '#3b82f6' },
-    { name: 'Formation', value: 62, color: '#10b981' },
-    { name: 'Réunion', value: 48, color: '#f59e0b' },
+    { name: 'Training', value: 62, color: '#10b981' },
+    { name: 'Meeting', value: 48, color: '#f59e0b' },
     { name: 'Audit', value: 28, color: '#8b5cf6' },
-    { name: 'Livraison', value: 11, color: '#ef4444' },
+    { name: 'Special Delivery', value: 11, color: '#ef4444' },
   ];
 
   // ROI by category
   const roiData = [
-    { category: 'Formation', investment: 45000000, returns: 135000000, roi: 3.0 },
+    { category: 'Training', investment: 45000000, returns: 135000000, roi: 3.0 },
     { category: 'Inspection', investment: 65000000, returns: 175000000, roi: 2.7 },
     { category: 'Audit', investment: 25000000, returns: 80000000, roi: 3.2 },
-    { category: 'Réunion', investment: 35000000, returns: 70000000, roi: 2.0 },
+    { category: 'Meeting', investment: 35000000, returns: 70000000, roi: 2.0 },
   ];
 
   // Regional distribution
@@ -118,7 +118,7 @@ export default function DirectorAnalytics() {
     { region: 'Ngozi', missions: 35, budget: 28000000 },
     { region: 'Kayanza', missions: 28, budget: 22000000 },
     { region: 'Muyinga', missions: 25, budget: 20000000 },
-    { region: 'Autres', missions: 66, budget: 48000000 },
+    { region: 'Others', missions: 66, budget: 48000000 },
   ];
 
   const handleExport = (format: string) => {
@@ -150,7 +150,7 @@ export default function DirectorAnalytics() {
             </Button>
             <Button variant="outline" onClick={() => handleExport('print')}>
               <Printer className="h-4 w-4 mr-2" />
-              Imprimer
+              Print
             </Button>
           </div>
         </div>
@@ -161,27 +161,27 @@ export default function DirectorAnalytics() {
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Filtres:</span>
+                <span className="text-sm font-medium">Filters:</span>
               </div>
 
               <Select value={period} onValueChange={setPeriod}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Période" />
+                  <SelectValue placeholder="Period" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="quarter">Ce Trimestre</SelectItem>
-                  <SelectItem value="year">Cette Année</SelectItem>
-                  <SelectItem value="lastyear">Année Précédente</SelectItem>
-                  <SelectItem value="all">Tout</SelectItem>
+                  <SelectItem value="quarter">This Quarter</SelectItem>
+                  <SelectItem value="year">This Year</SelectItem>
+                  <SelectItem value="lastyear">Previous Year</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Département" />
+                  <SelectValue placeholder="Department" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous les Départements</SelectItem>
+                  <SelectItem value="all">All Departments</SelectItem>
                   {departments.map(dept => (
                     <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                   ))}
@@ -213,9 +213,9 @@ export default function DirectorAnalytics() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Budget Utilisé</p>
+                  <p className="text-sm text-muted-foreground">Budget Used</p>
                   <p className="text-2xl font-bold">{formatCurrency(kpis.totalBudget)}</p>
-                  <p className="text-xs text-muted-foreground">{kpis.budgetUtilization}% du total</p>
+                  <p className="text-xs text-muted-foreground">{kpis.budgetUtilization}% of total</p>
                 </div>
                 <DollarSign className="h-8 w-8 text-green-500" />
               </div>
@@ -226,11 +226,11 @@ export default function DirectorAnalytics() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Délai Moyen</p>
-                  <p className="text-2xl font-bold">{kpis.avgApprovalTime}j</p>
+                  <p className="text-sm text-muted-foreground">Average Time</p>
+                  <p className="text-2xl font-bold">{kpis.avgApprovalTime}d</p>
                   <p className={`text-xs flex items-center gap-1 ${kpis.approvalTimeChange < 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {kpis.approvalTimeChange < 0 ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
-                    {kpis.approvalTimeChange}j
+                    {kpis.approvalTimeChange}d
                   </p>
                 </div>
                 <Calendar className="h-8 w-8 text-amber-500" />
@@ -258,9 +258,9 @@ export default function DirectorAnalytics() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">ROI Moyen</p>
+                  <p className="text-sm text-muted-foreground">Average ROI</p>
                   <p className="text-2xl font-bold text-green-600">{kpis.roi}x</p>
-                  <p className="text-xs text-green-600">Retour sur investissement</p>
+                  <p className="text-xs text-green-600">Return on Investment</p>
                 </div>
                 <Target className="h-8 w-8 text-green-600" />
               </div>
@@ -270,10 +270,10 @@ export default function DirectorAnalytics() {
 
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-            <TabsTrigger value="departments">Départements</TabsTrigger>
-            <TabsTrigger value="roi">Analyse ROI</TabsTrigger>
-            <TabsTrigger value="custom">Rapport Personnalisé</TabsTrigger>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="departments">Departments</TabsTrigger>
+            <TabsTrigger value="roi">ROI Analysis</TabsTrigger>
+            <TabsTrigger value="custom">Custom Report</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -282,8 +282,8 @@ export default function DirectorAnalytics() {
               {/* Mission Trends */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Tendances Mensuelles</CardTitle>
-                  <CardDescription>Évolution des missions et du budget</CardDescription>
+                  <CardTitle>Monthly Trends</CardTitle>
+                  <CardDescription>Evolution of missions and budget</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
@@ -296,7 +296,7 @@ export default function DirectorAnalytics() {
                         formatter={(value: number, name: string) => [
                           name === 'budget' ? formatCurrency(value) : value,
                           name === 'missions' ? 'Missions' : 
-                          name === 'approved' ? 'Approuvées' : 'Budget'
+                          name === 'approved' ? 'Approved' : 'Budget'
                         ]}
                       />
                       <Legend />
@@ -328,7 +328,7 @@ export default function DirectorAnalytics() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <PieChartIcon className="h-5 w-5" />
-                    Distribution par Type
+                    Distribution by Type
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -358,8 +358,8 @@ export default function DirectorAnalytics() {
             {/* Regional Distribution */}
             <Card>
               <CardHeader>
-                <CardTitle>Distribution Régionale</CardTitle>
-                <CardDescription>Missions par province</CardDescription>
+                <CardTitle>Regional Distribution</CardTitle>
+                <CardDescription>Missions by province</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -388,19 +388,19 @@ export default function DirectorAnalytics() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Building className="h-5 w-5" />
-                  Performance par Département
+                  Performance by Department
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Département</TableHead>
+                      <TableHead>Department</TableHead>
                       <TableHead className="text-center">Missions</TableHead>
-                      <TableHead className="text-right">Budget Alloué</TableHead>
-                      <TableHead className="text-right">Budget Utilisé</TableHead>
-                      <TableHead className="text-center">Utilisation</TableHead>
-                      <TableHead className="text-center">Efficacité</TableHead>
+                      <TableHead className="text-right">Allocated Budget</TableHead>
+                      <TableHead className="text-right">Used Budget</TableHead>
+                      <TableHead className="text-center">Utilization</TableHead>
+                      <TableHead className="text-center">Efficiency</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -433,7 +433,7 @@ export default function DirectorAnalytics() {
             {/* Department Budget Chart */}
             <Card>
               <CardHeader>
-                <CardTitle>Comparaison Budget/Utilisation</CardTitle>
+                <CardTitle>Budget/Utilization Comparison</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -443,8 +443,8 @@ export default function DirectorAnalytics() {
                     <YAxis tickFormatter={(value) => `${value / 1000000}M`} />
                     <Tooltip formatter={(value: number) => formatCurrency(value)} />
                     <Legend />
-                    <Bar dataKey="allocated" fill="#94a3b8" name="Alloué" />
-                    <Bar dataKey="used" fill="#3b82f6" name="Utilisé" />
+                    <Bar dataKey="allocated" fill="#94a3b8" name="Allocated" />
+                    <Bar dataKey="used" fill="#3b82f6" name="Used" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -460,11 +460,11 @@ export default function DirectorAnalytics() {
                     <h4 className="font-medium mb-4">{item.category}</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Investissement</span>
+                        <span className="text-muted-foreground">Investment</span>
                         <span>{formatCurrency(item.investment)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Retours</span>
+                        <span className="text-muted-foreground">Returns</span>
                         <span className="text-green-600">{formatCurrency(item.returns)}</span>
                       </div>
                       <div className="flex justify-between items-center pt-2 border-t">
@@ -480,8 +480,8 @@ export default function DirectorAnalytics() {
             {/* ROI Chart */}
             <Card>
               <CardHeader>
-                <CardTitle>Analyse du Retour sur Investissement</CardTitle>
-                <CardDescription>Comparaison investissement vs retours par catégorie</CardDescription>
+                <CardTitle>Return on Investment Analysis</CardTitle>
+                <CardDescription>Comparison of investment vs returns by category</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -491,8 +491,8 @@ export default function DirectorAnalytics() {
                     <YAxis tickFormatter={(value) => `${value / 1000000}M`} />
                     <Tooltip formatter={(value: number) => formatCurrency(value)} />
                     <Legend />
-                    <Bar dataKey="investment" fill="#94a3b8" name="Investissement" />
-                    <Bar dataKey="returns" fill="#10b981" name="Retours" />
+                    <Bar dataKey="investment" fill="#94a3b8" name="Investment" />
+                    <Bar dataKey="returns" fill="#10b981" name="Returns" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -502,38 +502,38 @@ export default function DirectorAnalytics() {
           <TabsContent value="custom" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Constructeur de Rapport Personnalisé</CardTitle>
+                <CardTitle>Custom Report Builder</CardTitle>
                 <CardDescription>
-                  Créez des rapports sur mesure selon vos besoins
+                  Create custom reports according to your needs
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid gap-4 md:grid-cols-3">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Métriques</label>
+                    <label className="text-sm font-medium">Metrics</label>
                     <Select defaultValue="missions">
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner..." />
+                        <SelectValue placeholder="Select..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="missions">Nombre de Missions</SelectItem>
+                        <SelectItem value="missions">Number of Missions</SelectItem>
                         <SelectItem value="budget">Budget</SelectItem>
-                        <SelectItem value="efficiency">Efficacité</SelectItem>
+                        <SelectItem value="efficiency">Efficiency</SelectItem>
                         <SelectItem value="roi">ROI</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Grouper par</label>
+                    <label className="text-sm font-medium">Group by</label>
                     <Select defaultValue="department">
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner..." />
+                        <SelectValue placeholder="Select..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="department">Département</SelectItem>
-                        <SelectItem value="type">Type de Mission</SelectItem>
-                        <SelectItem value="region">Région</SelectItem>
-                        <SelectItem value="month">Mois</SelectItem>
+                        <SelectItem value="department">Department</SelectItem>
+                        <SelectItem value="type">Mission Type</SelectItem>
+                        <SelectItem value="region">Region</SelectItem>
+                        <SelectItem value="month">Month</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -541,7 +541,7 @@ export default function DirectorAnalytics() {
                     <label className="text-sm font-medium">Format</label>
                     <Select defaultValue="chart">
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner..." />
+                        <SelectValue placeholder="Select..." />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="chart">Chart</SelectItem>
@@ -553,7 +553,7 @@ export default function DirectorAnalytics() {
                 </div>
                 <Button className="w-full">
                   <BarChart3 className="h-4 w-4 mr-2" />
-                  Générer le Rapport
+                  Generate Report
                 </Button>
               </CardContent>
             </Card>

@@ -83,14 +83,14 @@ export default function DepartmentDashboard() {
       id: '1', 
       employee: 'J. Ndayishimiye', 
       mission: 'Inspection Gitega',
-      reason: 'Raison de Santé',
+      reason: 'Health Reason',
       date: '2026-01-15',
     },
     { 
       id: '2', 
       employee: 'M. Nkurunziza', 
       mission: 'Formation Ngozi',
-      reason: 'Conflit de Planning',
+      reason: 'Planning Conflict',
       date: '2026-01-18',
     },
   ];
@@ -108,7 +108,7 @@ export default function DepartmentDashboard() {
   const monthlyMissions = [
     { month: 'Oct', count: 8 },
     { month: 'Nov', count: 12 },
-    { month: 'Déc', count: 10 },
+    { month: 'Dec', count: 10 },
     { month: 'Jan', count: 15 },
   ];
 
@@ -119,10 +119,10 @@ export default function DepartmentDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">
-              Tableau de Bord - Chef de Département
+              Dashboard - Department Head
             </h1>
             <p className="text-muted-foreground">
-              Gestion des missions et de l'équipe
+              Mission and team management
             </p>
           </div>
           <Button onClick={() => navigate('/department/create-mission')}>
@@ -134,26 +134,26 @@ export default function DepartmentDashboard() {
         {/* Stats Grid */}
         <div className="grid gap-4 md:grid-cols-4">
           <StatsCard
-            title="Personnel en Mission"
+            title="Personnel on Mission"
             value={`${onMission}/${teamMembers.length}`}
             icon={Users}
-            description={`${available} disponibles`}
+            description={`${available} available`}
           />
           <StatsCard
-            title="Approbations en Attente"
+            title="Pending Approvals"
             value={pendingApprovals.length.toString()}
             icon={Clock}
-            description="À examiner"
+            description="To review"
           />
           <StatsCard
-            title="Demandes de Remplacement"
+            title="Substitution Requests"
             value={substitutionRequests.length.toString()}
             icon={RefreshCw}
-            description="En attente"
+            description="Pending"
             variant="warning"
           />
           <StatsCard
-            title="Budget Utilisé"
+            title="Budget Used"
             value={`${budgetPercentage}%`}
             icon={DollarSign}
             description={formatCurrency(usedBudget)}

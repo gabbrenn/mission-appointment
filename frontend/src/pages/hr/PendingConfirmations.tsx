@@ -17,9 +17,9 @@ export default function PendingConfirmations() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Confirmations en Attente</h1>
+          <h1 className="text-3xl font-bold text-foreground">Pending Confirmations</h1>
           <p className="text-muted-foreground">
-            Missions nécessitant une confirmation RH
+            Missions requiring HR confirmation
           </p>
         </div>
 
@@ -27,7 +27,7 @@ export default function PendingConfirmations() {
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total en Attente</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Pending</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{pendingConfirmations.length}</div>
@@ -35,7 +35,7 @@ export default function PendingConfirmations() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Employés Disponibles</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Available Employees</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
@@ -45,7 +45,7 @@ export default function PendingConfirmations() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">En Mission</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">On Mission</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-amber-600">
@@ -87,17 +87,17 @@ export default function PendingConfirmations() {
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <Badge variant={employee.isAvailable ? "default" : "secondary"} className="text-xs">
-                                {employee.isAvailable ? 'Disponible' : 'En mission'}
+                                {employee.isAvailable ? 'Available' : 'On mission'}
                               </Badge>
                               <span className="text-xs text-muted-foreground">
-                                Équité: {employee.fairnessScore}%
+                                Fairness: {employee.fairnessScore}%
                               </span>
                             </div>
                           </>
                         )}
                       </div>
                       <div className="flex items-center justify-end">
-                        <Badge variant="secondary">En Attente</Badge>
+                        <Badge variant="secondary">Pending</Badge>
                       </div>
                     </div>
                     <div className="flex gap-2 ml-4">
@@ -106,7 +106,7 @@ export default function PendingConfirmations() {
                         onClick={() => navigate(`/hr/confirmation/${mission.id}`)}
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
-                        Confirmer
+                        Confirm
                       </Button>
                       <Button 
                         size="sm"
@@ -114,7 +114,7 @@ export default function PendingConfirmations() {
                         onClick={() => navigate(`/hr/confirmation/${mission.id}`)}
                       >
                         <Eye className="h-4 w-4 mr-1" />
-                        Détails
+                        Details
                       </Button>
                     </div>
                   </div>
@@ -128,7 +128,7 @@ export default function PendingConfirmations() {
           <Card>
             <CardContent className="py-12 text-center">
               <CheckSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Aucune confirmation en attente</p>
+              <p className="text-muted-foreground">No pending confirmations</p>
             </CardContent>
           </Card>
         )}

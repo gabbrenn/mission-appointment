@@ -21,22 +21,22 @@ export default function ResetPassword() {
     e.preventDefault();
     
     if (!password) {
-      toast.error("Veuillez entrer un nouveau mot de passe");
+      toast.error("Please enter a new password");
       return;
     }
 
     if (password.length < 6) {
-      toast.error("Le mot de passe doit contenir au moins 6 caractères");
+      toast.error("Password must be at least 6 characters");
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error("Les mots de passe ne correspondent pas");
+      toast.error("Passwords do not match");
       return;
     }
 
     if (!token) {
-      toast.error("Jeton de réinitialisation manquant");
+      toast.error("Missing reset token");
       return;
     }
 
@@ -44,12 +44,12 @@ export default function ResetPassword() {
     try {
       await authService.resetPassword({ token, password });
       setIsSuccess(true);
-      toast.success("Votre mot de passe a été réinitialisé avec succès");
+      toast.success("Your password has been reset successfully");
       setTimeout(() => {
         navigate('/login');
       }, 3000);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Lien invalide ou expiré");
+      toast.error(error.response?.data?.message || "Invalid or expired link");
     } finally {
       setIsLoading(false);
     }
@@ -63,20 +63,20 @@ export default function ResetPassword() {
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <CheckCircle2 className="h-10 w-10 text-green-600" />
             </div>
-            <CardTitle className="text-2xl font-bold">Réinitialisation réussie</CardTitle>
+            <CardTitle className="text-2xl font-bold">Reset successful</CardTitle>
             <CardDescription className="mt-2">
-              Votre mot de passe a été mis à jour.
+              Your password has been updated.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
             <p className="text-sm text-muted-foreground">
-              Vous allez être redirigé vers la page de connexion dans quelques secondes...
+              You will be redirected to the login page in a few seconds...
             </p>
           </CardContent>
           <CardFooter>
             <Button className="w-full" asChild>
               <Link to="/login">
-                Se connecter maintenant
+                Login now
               </Link>
             </Button>
           </CardFooter>
@@ -89,15 +89,15 @@ export default function ResetPassword() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <Card className="w-full max-w-md shadow-xl border-t-4 border-t-primary">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Nouveau mot de passe</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">New password</CardTitle>
           <CardDescription className="text-center">
-            Choisissez un mot de passe sécurisé pour votre compte
+            Choose a secure password for your account
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password">Nouveau mot de passe</Label>
+              <Label htmlFor="password">New password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -120,7 +120,7 @@ export default function ResetPassword() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+              <Label htmlFor="confirmPassword">Confirm password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -138,12 +138,12 @@ export default function ResetPassword() {
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Réinitialisation..." : "Enregistrer le mot de passe"}
+              {isLoading ? "Resetting..." : "Save password"}
             </Button>
             <Button variant="link" className="w-full" asChild>
               <Link to="/login" className="flex items-center justify-center">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Annuler
+                Cancel
               </Link>
             </Button>
           </CardFooter>

@@ -292,11 +292,11 @@ export default function AdminDepartments() {
 
   const orgChartData: OrgNodeType[] = [
     {
-      name: 'Direction Générale',
+      name: 'General Management',
       children: [
-        { name: 'Finance', children: [{ name: 'Comptabilité' }, { name: 'Trésorerie' }] },
-        { name: 'Opérations', children: [{ name: 'Logistique' }, { name: 'Distribution' }] },
-        { name: 'RH', children: [{ name: 'Recrutement' }, { name: 'Formation' }] },
+        { name: 'Finance', children: [{ name: 'Accounting' }, { name: 'Treasury' }] },
+        { name: 'Operations', children: [{ name: 'Logistics' }, { name: 'Distribution' }] },
+        { name: 'RH', children: [{ name: 'Recruitment' }, { name: 'Training' }] },
       ],
     },
   ];

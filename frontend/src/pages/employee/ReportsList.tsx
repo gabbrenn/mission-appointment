@@ -17,7 +17,7 @@ export default function ReportsList() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Mes Rapports</h1>
+          <h1 className="text-3xl font-bold text-foreground">My Reports</h1>
           <p className="text-muted-foreground">
             Submit and view your mission reports
           </p>
@@ -39,7 +39,7 @@ export default function ReportsList() {
                     </div>
                   </div>
                   <Badge variant={mission.status === 'completed' ? 'default' : 'secondary'}>
-                    {mission.status === 'completed' ? 'Complétée' : 'En Cours'}
+                    {mission.status === 'completed' ? 'Completed' : 'In Progress'}
                   </Badge>
                 </div>
               </CardHeader>
@@ -61,7 +61,7 @@ export default function ReportsList() {
                       className="flex-1"
                     >
                       <FileText className="h-4 w-4 mr-2" />
-                      Soumettre Rapport
+                      Submit Report
                     </Button>
                   )}
                   {mission.status === 'completed' && (
@@ -71,7 +71,7 @@ export default function ReportsList() {
                       className="flex-1"
                     >
                       <Eye className="h-4 w-4 mr-2" />
-                      Voir Rapport
+                      View Report
                     </Button>
                   )}
                 </div>
@@ -84,7 +84,7 @@ export default function ReportsList() {
           <Card>
             <CardContent className="py-12 text-center">
               <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Aucun rapport à soumettre pour le moment</p>
+              <p className="text-muted-foreground">No reports to submit at this time</p>
             </CardContent>
           </Card>
         )}

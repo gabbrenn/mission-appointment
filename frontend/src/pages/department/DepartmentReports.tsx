@@ -61,19 +61,19 @@ export default function DepartmentReports() {
 
   const monthlyTrends = [
     { month: 'Jan', missions: 12, budget: 3500000, approved: 10 },
-    { month: 'Fév', missions: 15, budget: 4200000, approved: 13 },
+    { month: 'Feb', missions: 15, budget: 4200000, approved: 13 },
     { month: 'Mar', missions: 18, budget: 5100000, approved: 16 },
-    { month: 'Avr', missions: 14, budget: 3800000, approved: 12 },
-    { month: 'Mai', missions: 20, budget: 5500000, approved: 18 },
-    { month: 'Juin', missions: 22, budget: 6200000, approved: 20 },
+    { month: 'Apr', missions: 14, budget: 3800000, approved: 12 },
+    { month: 'May', missions: 20, budget: 5500000, approved: 18 },
+    { month: 'Jun', missions: 22, budget: 6200000, approved: 20 },
   ];
 
   const missionTypes = [
     { name: 'Inspection', value: 35, color: '#3b82f6' },
-    { name: 'Formation', value: 25, color: '#10b981' },
-    { name: 'Réunion', value: 20, color: '#f59e0b' },
+    { name: 'Training', value: 25, color: '#10b981' },
+    { name: 'Meeting', value: 20, color: '#f59e0b' },
     { name: 'Audit', value: 15, color: '#8b5cf6' },
-    { name: 'Livraison', value: 5, color: '#ef4444' },
+    { name: 'Delivery', value: 5, color: '#ef4444' },
   ];
 
   const destinationStats = [
@@ -99,10 +99,10 @@ export default function DepartmentReports() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">
-              Rapports du Département
+              Department Reports
             </h1>
             <p className="text-muted-foreground">
-              Analyse et statistiques des missions
+              Mission analysis and statistics
             </p>
           </div>
 
@@ -124,29 +124,29 @@ export default function DepartmentReports() {
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Filtres:</span>
+                <span className="text-sm font-medium">Filters:</span>
               </div>
 
               <Select value={period} onValueChange={setPeriod}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Période" />
+                  <SelectValue placeholder="Period" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="week">Cette Semaine</SelectItem>
-                  <SelectItem value="month">Ce Mois</SelectItem>
-                  <SelectItem value="quarter">Ce Trimestre</SelectItem>
-                  <SelectItem value="year">Cette Année</SelectItem>
+                  <SelectItem value="week">This Week</SelectItem>
+                  <SelectItem value="month">This Month</SelectItem>
+                  <SelectItem value="quarter">This Quarter</SelectItem>
+                  <SelectItem value="year">This Year</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={reportType} onValueChange={setReportType}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Type de rapport" />
+                  <SelectValue placeholder="Report type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="missions">Missions</SelectItem>
                   <SelectItem value="budget">Budget</SelectItem>
-                  <SelectItem value="employees">Employés</SelectItem>
+                  <SelectItem value="employees">Employees</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -161,7 +161,7 @@ export default function DepartmentReports() {
                 <div>
                   <p className="text-sm text-muted-foreground">Total Missions</p>
                   <p className="text-2xl font-bold">47</p>
-                  <p className="text-xs text-green-600">+12% vs période précédente</p>
+                  <p className="text-xs text-green-600">+12% vs previous period</p>
                 </div>
                 <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
                   <FileText className="h-6 w-6 text-blue-600" />
@@ -174,9 +174,9 @@ export default function DepartmentReports() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Budget Utilisé</p>
+                  <p className="text-sm text-muted-foreground">Budget Used</p>
                   <p className="text-2xl font-bold">{formatCurrency(18500000)}</p>
-                  <p className="text-xs text-muted-foreground">sur {formatCurrency(25000000)}</p>
+                  <p className="text-xs text-muted-foreground">of {formatCurrency(25000000)}</p>
                 </div>
                 <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
                   <TrendingUp className="h-6 w-6 text-green-600" />
@@ -189,9 +189,9 @@ export default function DepartmentReports() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Employés Actifs</p>
+                  <p className="text-sm text-muted-foreground">Active Employees</p>
                   <p className="text-2xl font-bold">24</p>
-                  <p className="text-xs text-muted-foreground">sur 32 total</p>
+                  <p className="text-xs text-muted-foreground">of 32 total</p>
                 </div>
                 <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
                   <Users className="h-6 w-6 text-purple-600" />
@@ -204,9 +204,9 @@ export default function DepartmentReports() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Taux d'Approbation</p>
+                  <p className="text-sm text-muted-foreground">Approval Rate</p>
                   <p className="text-2xl font-bold">89%</p>
-                  <p className="text-xs text-green-600">+5% ce mois</p>
+                  <p className="text-xs text-green-600">+5% this month</p>
                 </div>
                 <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center">
                   <Calendar className="h-6 w-6 text-amber-600" />
@@ -223,10 +223,10 @@ export default function DepartmentReports() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
-                Missions par Employé
+                Missions per Employee
               </CardTitle>
               <CardDescription>
-                Répartition des missions entre les membres de l'équipe
+                Distribution of missions among team members
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -252,10 +252,10 @@ export default function DepartmentReports() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <PieChartIcon className="h-5 w-5" />
-                Types de Missions
+                Mission Types
               </CardTitle>
               <CardDescription>
-                Distribution par catégorie de mission
+                Distribution by mission category
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -285,9 +285,9 @@ export default function DepartmentReports() {
         {/* Monthly Trends */}
         <Card>
           <CardHeader>
-            <CardTitle>Tendances Mensuelles</CardTitle>
+            <CardTitle>Monthly Trends</CardTitle>
             <CardDescription>
-              Évolution des missions et du budget sur les 6 derniers mois
+              Evolution of missions and budget over the last 6 months
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -301,7 +301,7 @@ export default function DepartmentReports() {
                   formatter={(value: number, name: string) => [
                     name === 'budget' ? formatCurrency(value) : value,
                     name === 'missions' ? 'Total Missions' : 
-                    name === 'approved' ? 'Approuvées' : 'Budget'
+                    name === 'approved' ? 'Approved' : 'Budget'
                   ]}
                 />
                 <Legend />
@@ -331,9 +331,9 @@ export default function DepartmentReports() {
           {/* By Destination */}
           <Card>
             <CardHeader>
-              <CardTitle>Missions par Destination</CardTitle>
+              <CardTitle>Missions by Destination</CardTitle>
               <CardDescription>
-                Top 5 des destinations les plus fréquentes
+                Top 5 most frequent destinations
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -361,9 +361,9 @@ export default function DepartmentReports() {
           {/* Recent Missions Table */}
           <Card>
             <CardHeader>
-              <CardTitle>Missions Récentes</CardTitle>
+              <CardTitle>Recent Missions</CardTitle>
               <CardDescription>
-                Dernières missions du département
+                Latest department missions
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -372,7 +372,7 @@ export default function DepartmentReports() {
                   <TableRow>
                     <TableHead>Mission</TableHead>
                     <TableHead>Destination</TableHead>
-                    <TableHead>Statut</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="text-right">Budget</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -389,9 +389,9 @@ export default function DepartmentReports() {
                           mission.status === 'pending' ? 'secondary' :
                           mission.status === 'rejected' ? 'destructive' : 'outline'
                         }>
-                          {mission.status === 'completed' ? 'Approuvée' :
-                           mission.status === 'pending' ? 'En attente' :
-                           mission.status === 'rejected' ? 'Refusée' : mission.status}
+                          {mission.status === 'completed' ? 'Approved' :
+                           mission.status === 'pending' ? 'Pending' :
+                           mission.status === 'rejected' ? 'Rejected' : mission.status}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">

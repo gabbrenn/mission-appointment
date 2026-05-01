@@ -23,17 +23,17 @@ const statusConfig: Record<StatusVariant, {
   icon: React.ElementType;
 }> = {
   pending: {
-    label: 'En attente',
+    label: 'Pending',
     className: 'bg-status-pending/15 text-status-pending-foreground border border-status-pending/30',
     icon: Clock,
   },
   approved: {
-    label: 'Approuvée',
+    label: 'Approved',
     className: 'bg-status-approved/15 text-status-approved border border-status-approved/30',
     icon: CheckCircle2,
   },
   rejected: {
-    label: 'Rejetée',
+    label: 'Rejected',
     className: 'bg-status-rejected/15 text-status-rejected border border-status-rejected/30',
     icon: XCircle,
   },
@@ -43,22 +43,22 @@ const statusConfig: Record<StatusVariant, {
     icon: Loader2,
   },
   assigned: {
-    label: 'Assignée',
+    label: 'Assigned',
     className: 'bg-primary/15 text-primary border border-primary/30',
     icon: UserCheck,
   },
   completed: {
-    label: 'Terminée',
+    label: 'Completed',
     className: 'bg-secondary/15 text-secondary border border-secondary/30',
     icon: CheckCheck,
   },
   in_progress: {
-    label: 'En cours',
+    label: 'In Progress',
     className: 'bg-status-active/15 text-status-active border border-status-active/30',
     icon: Loader2,
   },
   accepted: {
-    label: 'Acceptée',
+    label: 'Accepted',
     className: 'bg-status-approved/15 text-status-approved border border-status-approved/30',
     icon: CheckCircle2,
   },

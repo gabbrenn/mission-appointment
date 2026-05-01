@@ -88,10 +88,10 @@ export default function MissionsList() {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-      PENDING: { label: 'En Attente', variant: 'secondary' },
-      ACCEPTED: { label: 'Acceptée', variant: 'default' },
-      DECLINED: { label: 'Refusée', variant: 'destructive' },
-      SUBSTITUTED: { label: 'Substituée', variant: 'outline' },
+      PENDING: { label: 'Pending', variant: 'secondary' },
+      ACCEPTED: { label: 'Accepted', variant: 'default' },
+      DECLINED: { label: 'Declined', variant: 'destructive' },
+      SUBSTITUTED: { label: 'Substituted', variant: 'outline' },
     };
     const statusInfo = variants[status] || variants.PENDING;
     return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
@@ -102,9 +102,9 @@ export default function MissionsList() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Mes Missions</h1>
+          <h1 className="text-3xl font-bold text-foreground">My Missions</h1>
           <p className="text-muted-foreground">
-            Vue complète de toutes vos missions assignées
+            Complete view of all your assigned missions
           </p>
         </div>
 
@@ -127,11 +127,11 @@ export default function MissionsList() {
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous les statuts</SelectItem>
-                  <SelectItem value="PENDING">En Attente</SelectItem>
-                  <SelectItem value="ACCEPTED">Acceptée</SelectItem>
-                  <SelectItem value="DECLINED">Refusée</SelectItem>
-                  <SelectItem value="SUBSTITUTED">Substituée</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="ACCEPTED">Accepted</SelectItem>
+                  <SelectItem value="DECLINED">Declined</SelectItem>
+                  <SelectItem value="SUBSTITUTED">Substituted</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -173,7 +173,7 @@ export default function MissionsList() {
                   </div>
                   {assignment.assignmentReason && (
                     <div className="text-sm text-muted-foreground">
-                      <strong>Motif:</strong> {assignment.assignmentReason}
+                      <strong>Reason:</strong> {assignment.assignmentReason}
                     </div>
                   )}
                   <div className="space-y-2">
@@ -192,7 +192,7 @@ export default function MissionsList() {
                       onClick={() => navigate(`/employee/mission/${assignment.mission?.id}`)}
                       disabled={!assignment.mission?.id}
                     >
-                      Voir Détails
+                      View Details
                     </Button>
                   </div>
                 </CardContent>
@@ -205,7 +205,7 @@ export default function MissionsList() {
           <Card>
             <CardContent className="py-12 text-center">
               <Briefcase className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Aucune mission trouvée</p>
+              <p className="text-muted-foreground">No missions found</p>
             </CardContent>
           </Card>
         )}

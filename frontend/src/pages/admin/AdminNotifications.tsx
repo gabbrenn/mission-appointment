@@ -501,10 +501,10 @@ export default function AdminNotifications() {
                           {v.name === 'start_date' && '2026-01-25'}
                           {v.name === 'end_date' && '2026-01-30'}
                           {v.name === 'budget' && '500,000'}
-                          {v.name === 'department' && 'Opérations'}
+                          {v.name === 'department' && 'Operations'}
                           {v.name === 'approver_name' && 'Marie Niyonzima'}
                           {v.name === 'approval_date' && '2026-01-20'}
-                          {v.name === 'rejection_reason' && 'Budget insuffisant'}
+                          {v.name === 'rejection_reason' && 'Insufficient budget'}
                         </TableCell>
                       </TableRow>
                     ))}

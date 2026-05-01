@@ -27,7 +27,7 @@ export default function ApprovalsList() {
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total en Attente</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Pending</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{pendingApprovals.length}</div>
@@ -35,7 +35,7 @@ export default function ApprovalsList() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Budget Total</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Budget</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -45,7 +45,7 @@ export default function ApprovalsList() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Missions Actives</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Active Missions</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-amber-600">
@@ -55,7 +55,7 @@ export default function ApprovalsList() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Complétées</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
@@ -137,7 +137,7 @@ export default function ApprovalsList() {
           <Card>
             <CardContent className="py-12 text-center">
               <CheckSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Aucune approbation en attente</p>
+              <p className="text-muted-foreground">No pending approvals</p>
             </CardContent>
           </Card>
         )}

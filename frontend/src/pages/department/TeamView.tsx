@@ -18,9 +18,9 @@ export default function TeamView() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Mon Équipe</h1>
+          <h1 className="text-3xl font-bold text-foreground">My Team</h1>
           <p className="text-muted-foreground">
-            Vue d'ensemble des membres de votre département
+            Overview of your department members
           </p>
         </div>
 
@@ -28,7 +28,7 @@ export default function TeamView() {
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Membres</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Members</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{teamMembers.length}</div>
@@ -36,7 +36,7 @@ export default function TeamView() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Disponibles</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Available</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
@@ -46,7 +46,7 @@ export default function TeamView() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">En Mission</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">On Mission</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-amber-600">
@@ -56,7 +56,7 @@ export default function TeamView() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Équité Moyenne</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Average Fairness</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -84,7 +84,7 @@ export default function TeamView() {
                     <p className="text-sm text-muted-foreground">{member.role}</p>
                   </div>
                   <Badge variant={member.isAvailable ? "default" : "secondary"}>
-                    {member.isAvailable ? 'Disponible' : 'En mission'}
+                    {member.isAvailable ? 'Available' : 'On mission'}
                   </Badge>
                 </div>
               </CardHeader>
@@ -99,11 +99,11 @@ export default function TeamView() {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Briefcase className="h-4 w-4" />
-                  <span>{member.totalMissions || 0} missions complétées</span>
+                  <span>{member.totalMissions || 0} missions completed</span>
                 </div>
                 <div className="flex items-center justify-between pt-2">
                   <div>
-                    <p className="text-xs text-muted-foreground">Score Équité</p>
+                    <p className="text-xs text-muted-foreground">Fairness Score</p>
                     <p className="text-sm font-semibold">{member.fairnessScore}%</p>
                   </div>
                   <Button 
@@ -112,7 +112,7 @@ export default function TeamView() {
                     onClick={() => navigate(`/employee/profile`)}
                   >
                     <Eye className="h-4 w-4 mr-1" />
-                    Profil
+                    Profile
                   </Button>
                 </div>
                 {member.skills && member.skills.length > 0 && (
@@ -138,7 +138,7 @@ export default function TeamView() {
           <Card>
             <CardContent className="py-12 text-center">
               <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Aucun membre d'équipe trouvé</p>
+              <p className="text-muted-foreground">No team members found</p>
             </CardContent>
           </Card>
         )}

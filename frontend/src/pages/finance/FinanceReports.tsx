@@ -75,11 +75,11 @@ export default function FinanceReports() {
   // Monthly trend data
   const monthlyTrend = [
     { month: 'Jan', missions: 28, cost: 17200000 },
-    { month: 'Fév', missions: 32, cost: 19500000 },
+    { month: 'Feb', missions: 32, cost: 19500000 },
     { month: 'Mar', missions: 35, cost: 21800000 },
-    { month: 'Avr', missions: 30, cost: 20100000 },
-    { month: 'Mai', missions: 38, cost: 22400000 },
-    { month: 'Juin', missions: 40, cost: 23900000 },
+    { month: 'Apr', missions: 30, cost: 20100000 },
+    { month: 'May', missions: 38, cost: 22400000 },
+    { month: 'Jun', missions: 40, cost: 23900000 },
   ];
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];

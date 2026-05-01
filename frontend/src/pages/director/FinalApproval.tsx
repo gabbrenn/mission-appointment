@@ -212,16 +212,16 @@ export default function FinalApproval() {
                     <div>
                       <h4 className="font-medium mb-2">Description</h4>
                       <p className="text-muted-foreground">
-                        {mission.description || "Inspection régulière des bureaux de poste dans la région assignée. Vérification des opérations, de la qualité du service et de la conformité aux normes de la RNP."}
+                        {mission.description || "Regular inspection of post offices in the assigned region. Verification of operations, service quality and compliance with RNP standards."}
                       </p>
                     </div>
 
                     <div>
-                      <h4 className="font-medium mb-2">Objectifs Stratégiques</h4>
+                      <h4 className="font-medium mb-2">Strategic Objectives</h4>
                       <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                        <li>Amélioration de la qualité du service postal</li>
-                        <li>Renforcement de la présence dans les provinces</li>
-                        <li>Collecte de données pour optimisation</li>
+                        <li>Improvement of postal service quality</li>
+                        <li>Strengthening presence in the provinces</li>
+                        <li>Data collection for optimization</li>
                       </ul>
                     </div>
                   </CardContent>
@@ -232,7 +232,7 @@ export default function FinalApproval() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <User className="h-5 w-5" />
-                      Profil de l'Employé
+                      Employee Profile
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -251,10 +251,10 @@ export default function FinalApproval() {
                         </p>
                         <div className="flex gap-2 mt-2">
                           <Badge variant={employee.isAvailable ? "default" : "secondary"}>
-                            {employee.isAvailable ? 'Disponible' : 'En mission'}
+                            {employee.isAvailable ? 'Available' : 'On mission'}
                           </Badge>
                           <Badge variant="outline">
-                            Score Équité: {employee.fairnessScore}%
+                            Fairness Score: {employee.fairnessScore}%
                           </Badge>
                         </div>
                       </div>
@@ -263,15 +263,15 @@ export default function FinalApproval() {
                     <div className="grid grid-cols-3 gap-4 pt-4">
                       <div className="text-center p-3 bg-muted rounded-lg">
                         <p className="text-2xl font-bold text-primary">{employee.totalMissions || 8}</p>
-                        <p className="text-xs text-muted-foreground">Missions Totales</p>
+                        <p className="text-xs text-muted-foreground">Total Missions</p>
                       </div>
                       <div className="text-center p-3 bg-muted rounded-lg">
                         <p className="text-2xl font-bold text-green-600">96%</p>
-                        <p className="text-xs text-muted-foreground">Taux de Réussite</p>
+                        <p className="text-xs text-muted-foreground">Success Rate</p>
                       </div>
                       <div className="text-center p-3 bg-muted rounded-lg">
                         <p className="text-2xl font-bold text-amber-600">4.8</p>
-                        <p className="text-xs text-muted-foreground">Note Moyenne</p>
+                        <p className="text-xs text-muted-foreground">Average Rating</p>
                       </div>
                     </div>
                   </CardContent>
@@ -284,7 +284,7 @@ export default function FinalApproval() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <MessageSquare className="h-5 w-5" />
-                      Commentaires des Approbateurs
+                      Approver Comments
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -311,16 +311,16 @@ export default function FinalApproval() {
                 {/* Full Timeline */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Parcours d'Approbation Complet</CardTitle>
+                    <CardTitle>Full Approval Path</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ApprovalTimeline 
                       steps={[
-                        { role: 'Employé', status: 'approved', date: '15 Jan 2026', comment: 'Demande soumise' },
-                        { role: 'Chef de Département', status: 'approved', date: '18 Jan 2026', comment: approvalComments[0].comment },
+                        { role: 'Employee', status: 'approved', date: '15 Jan 2026', comment: 'Request submitted' },
+                        { role: 'Department Head', status: 'approved', date: '18 Jan 2026', comment: approvalComments[0].comment },
                         { role: 'Finance', status: 'approved', date: '19 Jan 2026', comment: approvalComments[1].comment },
-                        { role: 'RH', status: 'approved', date: '20 Jan 2026', comment: approvalComments[2].comment },
-                        { role: 'Directeur', status: 'pending', date: '', comment: 'En attente de votre décision' },
+                        { role: 'HR', status: 'approved', date: '20 Jan 2026', comment: approvalComments[2].comment },
+                        { role: 'Director', status: 'pending', date: '', comment: 'Waiting for your decision' },
                       ]}
                     />
                   </CardContent>
@@ -333,7 +333,7 @@ export default function FinalApproval() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <DollarSign className="h-5 w-5" />
-                      Répartition Budgétaire
+                      Budget Breakdown
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -366,12 +366,12 @@ export default function FinalApproval() {
                 {/* Budget Context */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Contexte Budgétaire</CardTitle>
+                    <CardTitle>Budget Context</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="p-4 bg-muted rounded-lg text-center">
-                        <p className="text-sm text-muted-foreground">Budget Annuel RNP</p>
+                        <p className="text-sm text-muted-foreground">RNP Annual Budget</p>
                         <p className="text-xl font-bold">{formatCurrency(500000000)}</p>
                       </div>
                       <div className="p-4 bg-muted rounded-lg text-center">
@@ -380,7 +380,7 @@ export default function FinalApproval() {
                       </div>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Cette mission représente <span className="font-semibold">0.12%</span> du budget annuel restant.
+                      This mission represents <span className="font-semibold">0.12%</span> of the remaining annual budget.
                     </p>
                   </CardContent>
                 </Card>
@@ -390,25 +390,25 @@ export default function FinalApproval() {
             {/* Director Notes */}
             <Card>
               <CardHeader>
-                <CardTitle>Notes du Directeur</CardTitle>
+                <CardTitle>Director Notes</CardTitle>
                 <CardDescription>
-                  Ajoutez vos observations et décision
+                  Add your observations and decision
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Commentaires sur la décision</Label>
+                  <Label>Decision Comments</Label>
                   <Textarea
-                    placeholder="Entrez vos commentaires..."
+                    placeholder="Enter your comments..."
                     value={directorNotes}
                     onChange={(e) => setDirectorNotes(e.target.value)}
                     rows={3}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Notes Stratégiques (optionnel)</Label>
+                  <Label>Strategic Notes (optional)</Label>
                   <Textarea
-                    placeholder="Considérations stratégiques pour cette mission..."
+                    placeholder="Strategic considerations for this mission..."
                     value={strategicNotes}
                     onChange={(e) => setStrategicNotes(e.target.value)}
                     rows={3}
@@ -423,7 +423,7 @@ export default function FinalApproval() {
             {/* Quick Summary */}
             <Card>
               <CardHeader>
-                <CardTitle>Résumé Exécutif</CardTitle>
+                <CardTitle>Executive Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="flex justify-between">
@@ -431,16 +431,16 @@ export default function FinalApproval() {
                   <span className="font-medium">{mission.title.substring(0, 15)}...</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Employé</span>
+                  <span className="text-muted-foreground">Employee</span>
                   <span>{employee.firstName} {employee.lastName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Département</span>
+                  <span className="text-muted-foreground">Department</span>
                   <span>{mission.department}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Durée</span>
-                  <span>5 jours</span>
+                  <span className="text-muted-foreground">Duration</span>
+                  <span>5 days</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Budget</span>
@@ -459,25 +459,25 @@ export default function FinalApproval() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5" />
-                  Évaluation des Risques
+                  Risk Assessment
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">Risque Financier</span>
-                  <Badge className="bg-green-500">Faible</Badge>
+                  <span className="text-sm">Financial Risk</span>
+                  <Badge className="bg-green-500">Low</Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">Risque Opérationnel</span>
-                  <Badge className="bg-green-500">Faible</Badge>
+                  <span className="text-sm">Operational Risk</span>
+                  <Badge className="bg-green-500">Low</Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">Risque de Conformité</span>
-                  <Badge className="bg-green-500">Faible</Badge>
+                  <span className="text-sm">Compliance Risk</span>
+                  <Badge className="bg-green-500">Low</Badge>
                 </div>
                 <Separator />
                 <p className="text-xs text-muted-foreground">
-                  Aucun risque significatif identifié. Toutes les approbations préalables ont été obtenues.
+                  No significant risks identified. All prior approvals have been obtained.
                 </p>
               </CardContent>
             </Card>
@@ -491,7 +491,7 @@ export default function FinalApproval() {
                   disabled={isProcessing}
                 >
                   <CheckCircle className="h-5 w-5 mr-2" />
-                  {isProcessing ? 'Traitement...' : 'Approuver Définitivement'}
+                  {isProcessing ? 'Processing...' : 'Approve Finally'}
                 </Button>
                 
                 <Button 
@@ -501,7 +501,7 @@ export default function FinalApproval() {
                   disabled={isProcessing}
                 >
                   <XCircle className="h-4 w-4 mr-2" />
-                  Refuser la Mission
+                  Refuse Mission
                 </Button>
               </CardContent>
             </Card>

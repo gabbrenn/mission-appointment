@@ -31,7 +31,7 @@ export default function MissionMap() {
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Missions Actives</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Active Missions</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{activeMissions.length}</div>
@@ -39,7 +39,7 @@ export default function MissionMap() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Villes Couvertes</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Cities Covered</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{Object.keys(missionsByCity).length}</div>
@@ -47,7 +47,7 @@ export default function MissionMap() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Employés en Mission</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Employees on Mission</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -57,7 +57,7 @@ export default function MissionMap() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Budget Total Actif</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Active Budget</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -74,7 +74,7 @@ export default function MissionMap() {
               <Map className="h-16 w-16 text-primary" />
             </div>
             <p className="text-center text-muted-foreground mb-4">
-              Carte interactive du Burundi avec localisation des missions
+              Interactive map of Burundi with mission localization
             </p>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-8">
               {cities.map((city) => {
@@ -104,7 +104,7 @@ export default function MissionMap() {
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground flex items-center gap-2">
                           <Users className="h-4 w-4" />
-                          Employés
+                          Employees
                         </span>
                         <span className="font-medium">{activeCityMissions.length}</span>
                       </div>
@@ -152,7 +152,7 @@ export default function MissionMap() {
                         <div key={mission.id} className="flex items-center justify-between text-sm pl-7">
                           <span className="text-muted-foreground">{mission.title}</span>
                           <Badge variant={mission.status === 'in_progress' ? 'default' : 'secondary'}>
-                            {mission.status === 'in_progress' ? 'En Cours' : 'Acceptée'}
+                            {mission.status === 'in_progress' ? 'In Progress' : 'Accepted'}
                           </Badge>
                         </div>
                       ))}

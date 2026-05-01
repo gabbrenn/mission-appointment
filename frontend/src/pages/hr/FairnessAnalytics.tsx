@@ -148,10 +148,10 @@ export default function FairnessAnalytics() {
             <div className="flex gap-4">
               <Select value={selectedDept} onValueChange={setSelectedDept}>
                 <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Département" />
+                  <SelectValue placeholder="Department" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous les départements</SelectItem>
+                  <SelectItem value="all">All departments</SelectItem>
                   {departments.map(dept => (
                     <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                   ))}
@@ -160,13 +160,13 @@ export default function FairnessAnalytics() {
 
               <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
                 <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Période" />
+                  <SelectValue placeholder="Period" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1month">1 mois</SelectItem>
-                  <SelectItem value="3months">3 mois</SelectItem>
-                  <SelectItem value="6months">6 mois</SelectItem>
-                  <SelectItem value="1year">1 an</SelectItem>
+                  <SelectItem value="1month">1 month</SelectItem>
+                  <SelectItem value="3months">3 months</SelectItem>
+                  <SelectItem value="6months">6 months</SelectItem>
+                  <SelectItem value="1year">1 year</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -179,11 +179,11 @@ export default function FairnessAnalytics() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Score Moyen</p>
+                  <p className="text-sm text-muted-foreground">Average Score</p>
                   <p className="text-3xl font-bold">{avgFairness}%</p>
                   <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
                     <TrendingUp className="h-3 w-3" />
-                    +5% ce mois
+                    +5% this month
                   </p>
                 </div>
                 <Target className="h-8 w-8 text-muted-foreground" />
@@ -195,10 +195,10 @@ export default function FairnessAnalytics() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Médiane</p>
+                  <p className="text-sm text-muted-foreground">Median</p>
                   <p className="text-3xl font-bold">{medianFairness}%</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Écart type: {stdDeviation}
+                    Standard deviation: {stdDeviation}
                   </p>
                 </div>
                 <Award className="h-8 w-8 text-muted-foreground" />
@@ -210,12 +210,12 @@ export default function FairnessAnalytics() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Équilibrés (&gt;60%)</p>
+                  <p className="text-sm text-muted-foreground">Balanced (&gt;60%)</p>
                   <p className="text-3xl font-bold text-green-600">
                     {employees.filter(e => e.fairnessScore >= 60).length}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {Math.round((employees.filter(e => e.fairnessScore >= 60).length / employees.length) * 100)}% du total
+                    {Math.round((employees.filter(e => e.fairnessScore >= 60).length / employees.length) * 100)}% of total
                   </p>
                 </div>
                 <CheckCircle2 className="h-8 w-8 text-green-600" />
@@ -227,12 +227,12 @@ export default function FairnessAnalytics() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Déséquilibrés (&lt;40%)</p>
+                  <p className="text-sm text-muted-foreground">Unbalanced (&lt;40%)</p>
                   <p className="text-3xl font-bold text-orange-600">
                     {employees.filter(e => e.fairnessScore < 40).length}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Nécessitent attention
+                    Require attention
                   </p>
                 </div>
                 <AlertTriangle className="h-8 w-8 text-orange-600" />
@@ -249,7 +249,7 @@ export default function FairnessAnalytics() {
                 <AlertTriangle className="h-6 w-6 text-orange-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-semibold text-orange-900 dark:text-orange-100 mb-2">
-                    {outliers.length} employé(s) identifié(s) comme valeurs aberrantes
+                    {outliers.length} employee(s) identified as outliers
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {outliers.map(emp => (
@@ -263,7 +263,7 @@ export default function FairnessAnalytics() {
                     ))}
                   </div>
                   <p className="text-sm text-orange-700 dark:text-orange-300 mt-3">
-                    Recommandation: Prioriser ces agents pour les prochaines missions ou enquêter sur les raisons du déséquilibre
+                    Recommendation: Prioritize these agents for upcoming missions or investigate reasons for the imbalance
                   </p>
                 </div>
               </div>
@@ -276,7 +276,7 @@ export default function FairnessAnalytics() {
           {/* Fairness Distribution */}
           <Card>
             <CardHeader>
-              <CardTitle>Distribution des Scores d'Équité</CardTitle>
+              <CardTitle>Fairness Score Distribution</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -285,7 +285,7 @@ export default function FairnessAnalytics() {
                   <XAxis dataKey="range" />
                   <YAxis />
                   <Tooltip labelStyle={{ color: '#000' }} />
-                  <Bar dataKey="count" name="Employés">
+                  <Bar dataKey="count" name="Employees">
                     {fairnessDistribution.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
@@ -302,7 +302,7 @@ export default function FairnessAnalytics() {
                       />
                       <span>{item.range}</span>
                     </div>
-                    <span className="font-semibold">{item.count} employés</span>
+                    <span className="font-semibold">{item.count} employees</span>
                   </div>
                 ))}
               </div>
@@ -312,7 +312,7 @@ export default function FairnessAnalytics() {
           {/* Equity Trend */}
           <Card>
             <CardHeader>
-              <CardTitle>Tendance d'Équité</CardTitle>
+              <CardTitle>Fairness Trend</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -327,7 +327,7 @@ export default function FairnessAnalytics() {
                     dataKey="avg" 
                     stroke="#3b82f6" 
                     strokeWidth={2}
-                    name="Moyenne"
+                    name="Average"
                   />
                   <Line 
                     type="monotone" 
@@ -356,7 +356,7 @@ export default function FairnessAnalytics() {
           {/* Department Comparison */}
           <Card>
             <CardHeader>
-              <CardTitle>Comparaison par Département</CardTitle>
+              <CardTitle>Comparison by Department</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -366,7 +366,7 @@ export default function FairnessAnalytics() {
                   <YAxis dataKey="name" type="category" width={100} />
                   <Tooltip labelStyle={{ color: '#000' }} />
                   <Legend />
-                  <Bar dataKey="fairness" fill="#3b82f6" name="Score d'Équité" />
+                  <Bar dataKey="fairness" fill="#3b82f6" name="Fairness Score" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -375,7 +375,7 @@ export default function FairnessAnalytics() {
           {/* Radar Analysis */}
           <Card>
             <CardHeader>
-              <CardTitle>Analyse Multi-Dimensionnelle</CardTitle>
+              <CardTitle>Multi-Dimensional Analysis</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -384,7 +384,7 @@ export default function FairnessAnalytics() {
                   <PolarAngleAxis dataKey="metric" />
                   <PolarRadiusAxis domain={[0, 100]} />
                   <Radar 
-                    name="Performance Globale" 
+                    name="Global Performance" 
                     dataKey="value" 
                     stroke="#3b82f6" 
                     fill="#3b82f6" 
@@ -400,7 +400,7 @@ export default function FairnessAnalytics() {
         {/* Mission vs Fairness Scatter */}
         <Card>
           <CardHeader>
-            <CardTitle>Corrélation Missions vs Équité</CardTitle>
+            <CardTitle>Missions vs Fairness Correlation</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={400}>
@@ -410,13 +410,13 @@ export default function FairnessAnalytics() {
                   type="number" 
                   dataKey="missions" 
                   name="Missions" 
-                  label={{ value: 'Nombre de Missions', position: 'bottom' }}
+                  label={{ value: 'Number of Missions', position: 'bottom' }}
                 />
                 <YAxis 
                   type="number" 
                   dataKey="fairness" 
-                  name="Équité" 
-                  label={{ value: 'Score d\'Équité (%)', angle: -90, position: 'left' }}
+                  name="Fairness" 
+                  label={{ value: 'Fairness Score (%)', angle: -90, position: 'left' }}
                   domain={[0, 100]}
                 />
                 <ZAxis range={[100, 400]} />
@@ -425,7 +425,7 @@ export default function FairnessAnalytics() {
                   labelStyle={{ color: '#000' }}
                 />
                 <Scatter 
-                  name="Employés" 
+                  name="Employees" 
                   data={employeeData} 
                   fill="#3b82f6"
                 />
@@ -441,7 +441,7 @@ export default function FairnessAnalytics() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Award className="h-5 w-5 text-green-600" />
-                Top 5 - Meilleurs Scores
+                Top 5 - Highest Scores
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -484,7 +484,7 @@ export default function FairnessAnalytics() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-orange-600" />
-                Top 5 - Nécessitent Attention
+                Top 5 - Require Attention
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -526,14 +526,14 @@ export default function FairnessAnalytics() {
         {/* Recommendations */}
         <Card>
           <CardHeader>
-            <CardTitle>Recommandations</CardTitle>
+            <CardTitle>Recommendations</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-start gap-3 p-4 border rounded-lg">
                 <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold">Score moyen en amélioration</p>
+                  <p className="font-semibold">Average score improving</p>
                   <p className="text-sm text-muted-foreground mt-1">
                     The average fairness score increased by 5% this month. Continue to prioritize employees with low scores.
                   </p>
@@ -545,10 +545,10 @@ export default function FairnessAnalytics() {
                   <AlertTriangle className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-orange-900 dark:text-orange-100">
-                      Action requise pour {outliers.length} employé(s)
+                      Action required for {outliers.length} employee(s)
                     </p>
                     <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">
-                      Prioriser ces agents pour les prochaines missions pour rééquilibrer la distribution.
+                      Prioritize these agents for the next missions to rebalance the distribution.
                     </p>
                   </div>
                 </div>
@@ -557,9 +557,9 @@ export default function FairnessAnalytics() {
               <div className="flex items-start gap-3 p-4 border rounded-lg">
                 <Target className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold">Objectif: Score minimum de 60%</p>
+                  <p className="font-semibold">Goal: Minimum score of 60%</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {employees.filter(e => e.fairnessScore < 60).length} employés sous l'objectif. 
+                    {employees.filter(e => e.fairnessScore < 60).length} employees below the goal. 
                     Plan a redistribution of missions to reach the goal.
                   </p>
                 </div>

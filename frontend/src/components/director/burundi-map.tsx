@@ -109,19 +109,19 @@ export function BurundiMap({ missions }: BurundiMapProps) {
 
       {/* Legend */}
       <div className="absolute bottom-2 left-2 bg-card/90 backdrop-blur-sm rounded-lg p-2 border shadow-sm">
-        <p className="text-xs font-medium mb-1">Missions par ville</p>
+        <p className="text-xs font-medium mb-1">Missions by city</p>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full bg-primary"></div>
-            <span>Faible</span>
+            <span>Low</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-full bg-primary"></div>
-            <span>Moyen</span>
+            <span>Medium</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-4 h-4 rounded-full bg-primary"></div>
-            <span>Élevé</span>
+            <span>High</span>
           </div>
         </div>
       </div>

@@ -52,7 +52,7 @@ export default function Notifications() {
 
   const deleteNotification = (id: string) => {
     removeNotification(id);
-    toast.success("Notification supprimée");
+    toast.success("Notification deleted");
   };
 
   const handleAction = (notification: { id: string; actionUrl?: string }) => {
@@ -76,10 +76,10 @@ export default function Notifications() {
   const getTypeBadge = (type: string) => {
     const labels: Record<string, string> = {
       mission: 'Mission',
-      approval: 'Approbation',
+      approval: 'Approval',
       budget: 'Budget',
-      system: 'Système',
-      reminder: 'Rappel',
+      system: 'System',
+      reminder: 'Reminder',
     };
     return labels[type] || type;
   };
@@ -120,8 +120,8 @@ export default function Notifications() {
             </h1>
             <p className="text-muted-foreground">
               {unreadCount > 0 
-                ? `${unreadCount} notification${unreadCount > 1 ? 's' : ''} non lue${unreadCount > 1 ? 's' : ''}`
-                : 'Toutes les notifications sont lues'}
+                ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}`
+                : 'All notifications are read'}
             </p>
           </div>
 
@@ -143,7 +143,7 @@ export default function Notifications() {
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Filtrer:</span>
+                <span className="text-sm font-medium">Filter:</span>
               </div>
 
               <Select value={filter} onValueChange={setFilter}>
@@ -151,13 +151,13 @@ export default function Notifications() {
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Toutes</SelectItem>
-                  <SelectItem value="unread">Non lues</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="unread">Unread</SelectItem>
                   <SelectItem value="mission">Missions</SelectItem>
-                  <SelectItem value="approval">Approbations</SelectItem>
+                  <SelectItem value="approval">Approvals</SelectItem>
                   <SelectItem value="budget">Budget</SelectItem>
-                  <SelectItem value="system">Système</SelectItem>
-                  <SelectItem value="reminder">Rappels</SelectItem>
+                  <SelectItem value="system">System</SelectItem>
+                  <SelectItem value="reminder">Reminders</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -175,7 +175,7 @@ export default function Notifications() {
               <CardContent className="pt-6">
                 <div className="text-center py-8">
                   <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Aucune notification</h3>
+                  <h3 className="text-lg font-medium mb-2">No notifications</h3>
                   <p className="text-muted-foreground">
                     You have no notifications matching this filter.
                   </p>
@@ -223,7 +223,7 @@ export default function Notifications() {
                           size="sm"
                           onClick={() => handleAction(notification)}
                         >
-                          Voir
+                          View
                           <ArrowRight className="h-3 w-3 ml-1" />
                         </Button>
                       )}

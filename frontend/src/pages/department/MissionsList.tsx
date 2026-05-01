@@ -46,7 +46,7 @@ export default function MissionsList() {
 
   // Format date helper function
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -55,12 +55,12 @@ export default function MissionsList() {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-      PENDING: { label: 'En Attente', variant: 'secondary' },
-      ASSIGNED: { label: 'Assignée', variant: 'outline' },
-      ACCEPTED: { label: 'Acceptée', variant: 'default' },
-      IN_PROGRESS: { label: 'En Cours', variant: 'default' },
-      COMPLETED: { label: 'Complétée', variant: 'outline' },
-      REJECTED: { label: 'Refusée', variant: 'destructive' },
+      PENDING: { label: 'Pending', variant: 'secondary' },
+      ASSIGNED: { label: 'Assigned', variant: 'outline' },
+      ACCEPTED: { label: 'Accepted', variant: 'default' },
+      IN_PROGRESS: { label: 'In Progress', variant: 'default' },
+      COMPLETED: { label: 'Completed', variant: 'outline' },
+      REJECTED: { label: 'Rejected', variant: 'destructive' },
     };
     const statusInfo = variants[status] || variants.PENDING;
     return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
@@ -72,9 +72,9 @@ export default function MissionsList() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Missions du Département</h1>
+            <h1 className="text-3xl font-bold text-foreground">Department Missions</h1>
             <p className="text-muted-foreground">
-              Gérez toutes les missions de votre département
+              Manage all missions in your department
             </p>
           </div>
           <Button onClick={() => navigate('/department/create-mission')}>
@@ -158,7 +158,7 @@ export default function MissionsList() {
                           onClick={() => navigate(`/department/approval/${mission.id}`)}
                         >
                           <CheckCircle className="h-4 w-4 mr-1" />
-                          Approuver
+                          Approve
                         </Button>
                       )}
                       <Button 
@@ -181,7 +181,7 @@ export default function MissionsList() {
           <Card>
             <CardContent className="py-12 text-center">
               <Briefcase className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Aucune mission trouvée</p>
+              <p className="text-muted-foreground">No missions found</p>
             </CardContent>
           </Card>
         )}

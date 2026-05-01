@@ -192,7 +192,7 @@ export default function EmployeeProfile() {
 
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label>Prénom</Label>
+                      <Label>First Name</Label>
                       <Input
                         value={formData.firstName}
                         onChange={(e) => setFormData({...formData, firstName: e.target.value})}
@@ -200,7 +200,7 @@ export default function EmployeeProfile() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Nom</Label>
+                      <Label>Last Name</Label>
                       <Input
                         value={formData.lastName}
                         onChange={(e) => setFormData({...formData, lastName: e.target.value})}
@@ -219,7 +219,7 @@ export default function EmployeeProfile() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label>Téléphone</Label>
+                      <Label>Phone</Label>
                       <div className="flex items-center gap-2">
                         <Phone className="h-4 w-4 text-muted-foreground" />
                         <Input
@@ -561,8 +561,8 @@ export default function EmployeeProfile() {
                 <div className="space-y-2">
                   <Label>Language</Label>
                   <select className="w-full p-2 border rounded-md">
-                    <option value="fr">Français</option>
                     <option value="en">English</option>
+                    <option value="fr">French</option>
                     <option value="rn">Kirundi</option>
                   </select>
                 </div>

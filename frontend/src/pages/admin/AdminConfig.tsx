@@ -27,7 +27,7 @@ const categoryIcons: Record<string, React.ElementType> = {
   'Budget': DollarSign,
   'Missions': Briefcase,
   'Notifications': Bell,
-  'Système': Server,
+  'System': Server,
 };
 
 export default function AdminConfig() {

@@ -70,11 +70,11 @@ export default function BudgetApproval() {
   // Historical comparison data
   const historicalData = [
     { month: 'Jan', avg: mission.budget * 0.8 },
-    { month: 'Fév', avg: mission.budget * 0.9 },
+    { month: 'Feb', avg: mission.budget * 0.9 },
     { month: 'Mar', avg: mission.budget * 1.1 },
-    { month: 'Avr', avg: mission.budget * 0.95 },
-    { month: 'Mai', avg: mission.budget * 1.05 },
-    { month: 'Juin', avg: mission.budget },
+    { month: 'Apr', avg: mission.budget * 0.95 },
+    { month: 'May', avg: mission.budget * 1.05 },
+    { month: 'Jun', avg: mission.budget },
   ];
 
   const avgBudget = historicalData.reduce((acc, d) => acc + d.avg, 0) / historicalData.length;

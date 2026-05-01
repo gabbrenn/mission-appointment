@@ -105,10 +105,10 @@ export default function CreateMission() {
   }, []);
 
   const availableSkills = [
-    'Audit', 'Formation', 'Inspection', 'Logistique', 
-    'Communication', 'Comptabilité', 'Gestion de Projet',
-    'Leadership', 'Négociation', 'Analyse', 'Rédaction',
-    'Présentation', 'Organisation', 'Planification'
+    'Audit', 'Training', 'Inspection', 'Logistics', 
+    'Communication', 'Accounting', 'Project Management',
+    'Leadership', 'Negotiation', 'Analysis', 'Writing',
+    'Presentation', 'Organization', 'Planning'
   ];
 
   const addSkill = (skill: string) => {
@@ -338,9 +338,9 @@ export default function CreateMission() {
         {step === 2 && (
           <Card>
             <CardHeader>
-              <CardTitle>Exigences de la Mission</CardTitle>
+              <CardTitle>Mission Requirements</CardTitle>
               <CardDescription>
-                Département et compétences requises
+                Department and required skills
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -351,7 +351,7 @@ export default function CreateMission() {
                   onValueChange={(value) => setForm({ ...form, departmentId: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Sélectionnez un département" />
+                    <SelectValue placeholder="Select a department" />
                   </SelectTrigger>
                   <SelectContent>
                     {departments.map(dept => (

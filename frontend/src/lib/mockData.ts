@@ -574,7 +574,7 @@ export const mockSystemConfig: SystemConfig[] = [
     id: 'CFG008',
     category: 'System',
     key: 'default_language',
-    value: 'fr',
+    value: 'en',
     description: 'System default language',
     type: 'select',
     options: ['fr', 'en', 'rn'],
@@ -623,7 +623,7 @@ export const formatCurrency = (amount: number): string => {
 };
 
 export const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString('fr-FR', {
+  return new Date(dateString).toLocaleDateString('en-US', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -631,7 +631,7 @@ export const formatDate = (dateString: string): string => {
 };
 
 export const formatDateTime = (dateString: string): string => {
-  return new Date(dateString).toLocaleString('fr-FR', {
+  return new Date(dateString).toLocaleString('en-US', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

@@ -41,8 +41,8 @@ export function DirectorApprovals() {
 
   // Get missions pending director approval (all other approvals done)
   const pendingApprovals = missions.filter(m => {
-    const directorStep = m.approvalStatus.find(s => s.role === 'Directeur');
-    const otherSteps = m.approvalStatus.filter(s => s.role !== 'Directeur');
+    const directorStep = m.approvalStatus.find(s => s.role === 'Director');
+    const otherSteps = m.approvalStatus.filter(s => s.role !== 'Director');
     const allOthersApproved = otherSteps.every(s => s.status === 'approved');
     return directorStep?.status === 'pending' && allOthersApproved;
   });
@@ -56,7 +56,7 @@ export function DirectorApprovals() {
           ...m,
           status: 'assigned',
           approvalStatus: m.approvalStatus.map(s => 
-            s.role === 'Directeur' 
+            s.role === 'Director' 
               ? { ...s, status: 'approved', approver: 'Pascasie Ntahomvukiye', date: new Date().toISOString().split('T')[0], comment }
               : s
           )
@@ -68,7 +68,7 @@ export function DirectorApprovals() {
     setIsApproveOpen(false);
     setSelectedMission(null);
     setComment("");
-    toast.success("Mission approuvée avec succès");
+    toast.success("Mission approved successfully");
   };
 
   const handleReject = () => {
@@ -80,7 +80,7 @@ export function DirectorApprovals() {
           ...m,
           status: 'rejected',
           approvalStatus: m.approvalStatus.map(s => 
-            s.role === 'Directeur' 
+            s.role === 'Director' 
               ? { ...s, status: 'rejected', approver: 'Pascasie Ntahomvukiye', date: new Date().toISOString().split('T')[0], comment }
               : s
           )
@@ -92,7 +92,7 @@ export function DirectorApprovals() {
     setIsRejectOpen(false);
     setSelectedMission(null);
     setComment("");
-    toast.success("Mission rejetée");
+    toast.success("Mission rejected");
   };
 
   const openApproveDialog = (mission: Mission) => {
@@ -111,17 +111,17 @@ export function DirectorApprovals() {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
             <Clock className="h-5 w-5 text-primary" />
-            Approbations Finales en Attente
+            Pending Final Approvals
           </CardTitle>
           <Badge variant="secondary" className="bg-destructive/10 text-destructive border-0">
-            {pendingApprovals.length} en attente
+            {pendingApprovals.length} pending
           </Badge>
         </CardHeader>
         <CardContent>
           {pendingApprovals.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <CheckCircle2 className="h-12 w-12 mx-auto mb-3 text-secondary opacity-50" />
-              <p>Aucune approbation en attente</p>
+              <p>No pending approvals</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -140,7 +140,7 @@ export function DirectorApprovals() {
                           </p>
                         </div>
                         <Badge className="bg-status-pending/20 text-status-pending-foreground border-0 shrink-0">
-                          En attente
+                          Pending
                         </Badge>
                       </div>
                       
@@ -159,7 +159,7 @@ export function DirectorApprovals() {
                         </div>
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4 text-muted-foreground" />
-                          <span>{mission.assignedTo ? `${mission.assignedTo.firstName} ${mission.assignedTo.lastName}` : 'Non assignée'}</span>
+                          <span>{mission.assignedTo ? `${mission.assignedTo.firstName} ${mission.assignedTo.lastName}` : 'Not assigned'}</span>
                         </div>
                       </div>
 
@@ -175,7 +175,7 @@ export function DirectorApprovals() {
                         className="btn-gov-secondary gap-2 flex-1 lg:flex-none"
                       >
                         <CheckCircle2 className="h-4 w-4" />
-                        Approuver
+                        Approve
                       </Button>
                       <Button 
                         variant="outline"
@@ -183,7 +183,7 @@ export function DirectorApprovals() {
                         className="gap-2 text-destructive hover:bg-destructive hover:text-destructive-foreground flex-1 lg:flex-none"
                       >
                         <XCircle className="h-4 w-4" />
-                        Rejeter
+                        Reject
                       </Button>
                     </div>
                   </div>
@@ -200,10 +200,10 @@ export function DirectorApprovals() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-secondary" />
-              Confirmer l'Approbation
+              Confirm Approval
             </DialogTitle>
             <DialogDescription>
-              Vous êtes sur le point d'approuver cette mission
+              You are about to approve this mission
             </DialogDescription>
           </DialogHeader>
           
@@ -218,7 +218,7 @@ export function DirectorApprovals() {
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium">Commentaire (optionnel)</label>
+                <label className="text-sm font-medium">Comment (optional)</label>
                 <Textarea
                   placeholder="Add a comment..."
                   value={comment}
@@ -234,7 +234,7 @@ export function DirectorApprovals() {
             </Button>
             <Button onClick={handleApprove} className="btn-gov-secondary gap-2">
               <CheckCircle2 className="h-4 w-4" />
-              Confirmer l'Approbation
+              Confirm Approval
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -246,7 +246,7 @@ export function DirectorApprovals() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-5 w-5" />
-              Rejeter la Mission
+              Reject Mission
             </DialogTitle>
             <DialogDescription>
               This action is final. Please provide a reason.
@@ -264,9 +264,9 @@ export function DirectorApprovals() {
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium">Raison du rejet <span className="text-destructive">*</span></label>
+                <label className="text-sm font-medium">Reason for rejection <span className="text-destructive">*</span></label>
                 <Textarea
-                  placeholder="Expliquez pourquoi cette mission est rejetée..."
+                  placeholder="Explain why this mission is rejected..."
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   className="min-h-[100px]"
@@ -286,7 +286,7 @@ export function DirectorApprovals() {
               className="gap-2"
             >
               <XCircle className="h-4 w-4" />
-              Confirmer le Rejet
+              Confirm Rejection
             </Button>
           </DialogFooter>
         </DialogContent>

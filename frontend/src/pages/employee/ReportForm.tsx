@@ -55,11 +55,11 @@ export default function ReportForm() {
 
   const expenseCategories = [
     'Transport',
-    'Hébergement',
-    'Restauration',
+    'Accommodation',
+    'Catering',
     'Communication',
-    'Carburant',
-    'Autres',
+    'Fuel',
+    'Others',
   ];
 
   const addExpenseRow = () => {

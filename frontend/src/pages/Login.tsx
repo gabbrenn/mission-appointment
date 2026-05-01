@@ -127,7 +127,7 @@ export default function Login() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="fr">Français</SelectItem>
+                <SelectItem value="fr">French</SelectItem>
                 <SelectItem value="rn">Kirundi</SelectItem>
                 <SelectItem value="en">English</SelectItem>
               </SelectContent>

@@ -17,9 +17,9 @@ export default function PendingApprovals() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Approbations en Attente</h1>
+          <h1 className="text-3xl font-bold text-foreground">Pending Approvals</h1>
           <p className="text-muted-foreground">
-            Missions nécessitant une validation budgétaire
+            Missions requiring budget validation
           </p>
         </div>
 
@@ -27,7 +27,7 @@ export default function PendingApprovals() {
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total en Attente</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Pending</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{pendingApprovals.length}</div>
@@ -35,7 +35,7 @@ export default function PendingApprovals() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Budget Total</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Budget</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -45,7 +45,7 @@ export default function PendingApprovals() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Budget Moyen</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Average Budget</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -81,7 +81,7 @@ export default function PendingApprovals() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <User className="h-4 w-4" />
-                          <span>{employee ? `${employee.firstName} ${employee.lastName}` : 'Non assigné'}</span>
+                          <span>{employee ? `${employee.firstName} ${employee.lastName}` : 'Unassigned'}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <DollarSign className="h-4 w-4" />
@@ -89,7 +89,7 @@ export default function PendingApprovals() {
                         </div>
                       </div>
                       <div className="flex items-center justify-end">
-                        <Badge variant="secondary">En Attente</Badge>
+                        <Badge variant="secondary">Pending</Badge>
                       </div>
                     </div>
                     <div className="flex gap-2 ml-4">
@@ -98,7 +98,7 @@ export default function PendingApprovals() {
                         onClick={() => navigate(`/finance/approval/${mission.id}`)}
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
-                        Valider
+                        Approve
                       </Button>
                       <Button 
                         size="sm"
@@ -106,7 +106,7 @@ export default function PendingApprovals() {
                         onClick={() => navigate(`/finance/approval/${mission.id}`)}
                       >
                         <Eye className="h-4 w-4 mr-1" />
-                        Détails
+                        Details
                       </Button>
                     </div>
                   </div>
@@ -120,7 +120,7 @@ export default function PendingApprovals() {
           <Card>
             <CardContent className="py-12 text-center">
               <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Aucune approbation en attente</p>
+              <p className="text-muted-foreground">No pending approvals</p>
             </CardContent>
           </Card>
         )}

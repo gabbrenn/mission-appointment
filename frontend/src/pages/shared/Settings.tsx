@@ -153,11 +153,11 @@ export default function Settings() {
   };
 
   const handleSaveNotifications = () => {
-    toast.success("Préférences de notification enregistrées");
+    toast.success("Notification preferences saved");
   };
 
   const handleSavePreferences = () => {
-    toast.success("Préférences enregistrées");
+    toast.success("Preferences saved");
   };
 
   const handleChangePassword = () => {
@@ -165,9 +165,9 @@ export default function Settings() {
   };
 
   const themeOptions = [
-    { value: 'light', label: 'Clair', icon: Sun },
-    { value: 'dark', label: 'Sombre', icon: Moon },
-    { value: 'system', label: 'Système', icon: Monitor },
+    { value: 'light', label: 'Light', icon: Sun },
+    { value: 'dark', label: 'Dark', icon: Moon },
+    { value: 'system', label: 'System', icon: Monitor },
   ];
 
   // Map user role to DashboardLayout role
@@ -193,7 +193,7 @@ export default function Settings() {
         <div>
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
             <SettingsIcon className="h-8 w-8" />
-            Paramètres
+            Settings
           </h1>
           <p className="text-muted-foreground mt-2">
             Manage your profile, notifications, and preferences
@@ -204,7 +204,7 @@ export default function Settings() {
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile" className="gap-2">
               <User className="h-4 w-4" />
-              Profil
+              Profile
             </TabsTrigger>
             <TabsTrigger value="notifications" className="gap-2">
               <Bell className="h-4 w-4" />
@@ -212,11 +212,11 @@ export default function Settings() {
             </TabsTrigger>
             <TabsTrigger value="preferences" className="gap-2">
               <Palette className="h-4 w-4" />
-              Préférences
+              Preferences
             </TabsTrigger>
             <TabsTrigger value="security" className="gap-2">
               <Shield className="h-4 w-4" />
-              Sécurité
+              Security
             </TabsTrigger>
           </TabsList>
 
@@ -271,7 +271,7 @@ export default function Settings() {
                     {/* Form Fields */}
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <Label htmlFor="firstName">Prénom</Label>
+                        <Label htmlFor="firstName">First Name</Label>
                         <Input
                           id="firstName"
                           value={profile.firstName}
@@ -279,7 +279,7 @@ export default function Settings() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="lastName">Nom</Label>
+                        <Label htmlFor="lastName">Last Name</Label>
                         <Input
                           id="lastName"
                           value={profile.lastName}
@@ -300,7 +300,7 @@ export default function Settings() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="phone">Téléphone</Label>
+                        <Label htmlFor="phone">Phone</Label>
                         <div className="relative">
                           <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
@@ -314,7 +314,7 @@ export default function Settings() {
                       </div>
                       {profile.department && (
                         <div className="space-y-2">
-                          <Label>Département</Label>
+                          <Label>Department</Label>
                           <div className="relative">
                             <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
@@ -326,7 +326,7 @@ export default function Settings() {
                         </div>
                       )}
                       <div className="space-y-2">
-                        <Label>Poste</Label>
+                        <Label>Position</Label>
                         <Input 
                           value={profile.position} 
                           onChange={(e) => setProfile({ ...profile, position: e.target.value })}
@@ -345,7 +345,7 @@ export default function Settings() {
                         ) : (
                           <>
                             <Save className="h-4 w-4 mr-2" />
-                            Enregistrer
+                            Save
                           </>
                         )}
                       </Button>
@@ -360,7 +360,7 @@ export default function Settings() {
           <TabsContent value="notifications" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Notifications par Email</CardTitle>
+                <CardTitle>Email Notifications</CardTitle>
                 <CardDescription>
                   Choose which notifications to receive by email
                 </CardDescription>
@@ -413,7 +413,7 @@ export default function Settings() {
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Rappels</Label>
+                    <Label>Reminders</Label>
                     <p className="text-sm text-muted-foreground">
                       Receive reminders for deadlines
                     </p>
@@ -430,17 +430,17 @@ export default function Settings() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Notifications Push</CardTitle>
+                <CardTitle>Push Notifications</CardTitle>
                 <CardDescription>
-                  Choisissez les notifications push dans l'application
+                  Choose push notifications in the application
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Mission Approuvée</Label>
+                    <Label>Mission Approved</Label>
                     <p className="text-sm text-muted-foreground">
-                      Notification dans l'application
+                      In-application notification
                     </p>
                   </div>
                   <Switch
@@ -453,9 +453,9 @@ export default function Settings() {
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Mission Rejetée</Label>
+                    <Label>Mission Rejected</Label>
                     <p className="text-sm text-muted-foreground">
-                      Notification dans l'application
+                      In-application notification
                     </p>
                   </div>
                   <Switch
@@ -468,9 +468,9 @@ export default function Settings() {
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Nouvelle Mission Assignée</Label>
+                    <Label>New Mission Assigned</Label>
                     <p className="text-sm text-muted-foreground">
-                      Notification dans l'application
+                      In-application notification
                     </p>
                   </div>
                   <Switch
@@ -485,7 +485,7 @@ export default function Settings() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Résumés</CardTitle>
+                <CardTitle>Summaries</CardTitle>
                 <CardDescription>
                   Receive periodic summaries
                 </CardDescription>
@@ -493,7 +493,7 @@ export default function Settings() {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Résumé Quotidien</Label>
+                    <Label>Daily Digest</Label>
                     <p className="text-sm text-muted-foreground">
                       Receive a summary every day at 8am
                     </p>
@@ -508,7 +508,7 @@ export default function Settings() {
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Rapport Hebdomadaire</Label>
+                    <Label>Weekly Report</Label>
                     <p className="text-sm text-muted-foreground">
                       Receive a report every Monday
                     </p>
@@ -526,7 +526,7 @@ export default function Settings() {
             <div className="flex justify-end">
               <Button onClick={handleSaveNotifications}>
                 <Save className="h-4 w-4 mr-2" />
-                Enregistrer les Préférences
+                Save Preferences
               </Button>
             </div>
           </TabsContent>
@@ -537,13 +537,13 @@ export default function Settings() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Globe className="h-5 w-5" />
-                  Langue et Région
+                  Language & Region
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>Langue</Label>
+                    <Label>Language</Label>
                     <Select
                       value={preferences.language}
                       onValueChange={(value) => setPreferences({ ...preferences, language: value })}
@@ -552,14 +552,14 @@ export default function Settings() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="fr">🇫🇷 Français</SelectItem>
+                        <SelectItem value="fr">🇫🇷 French</SelectItem>
                         <SelectItem value="en">🇬🇧 English</SelectItem>
                         <SelectItem value="rn">🇧🇮 Kirundi</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Fuseau Horaire</Label>
+                    <Label>Timezone</Label>
                     <Select
                       value={preferences.timezone}
                       onValueChange={(value) => setPreferences({ ...preferences, timezone: value })}
@@ -575,7 +575,7 @@ export default function Settings() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Format de Date</Label>
+                    <Label>Date Format</Label>
                     <Select
                       value={preferences.dateFormat}
                       onValueChange={(value) => setPreferences({ ...preferences, dateFormat: value })}
@@ -598,15 +598,15 @@ export default function Settings() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Palette className="h-5 w-5" />
-                  Apparence
+                  Appearance
                 </CardTitle>
                 <CardDescription>
-                  Personnalisez l'apparence de l'application
+                  Customize the application's appearance
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <Label>Thème</Label>
+                  <Label>Theme</Label>
                   <div className="grid grid-cols-3 gap-4 mt-2">
                     {themeOptions.map((option) => (
                       <button
@@ -633,7 +633,7 @@ export default function Settings() {
             <div className="flex justify-end">
               <Button onClick={handleSavePreferences}>
                 <Save className="h-4 w-4 mr-2" />
-                Enregistrer
+                Save
               </Button>
             </div>
           </TabsContent>
@@ -644,15 +644,15 @@ export default function Settings() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Key className="h-5 w-5" />
-                  Mot de Passe
+                  Password
                 </CardTitle>
                 <CardDescription>
-                  Modifiez votre mot de passe
+                  Change your password
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Pour des raisons de sécurité, vous recevrez un email avec un lien de réinitialisation.
+                  For security reasons, you will receive an email with a reset link.
                 </p>
                 <Button variant="outline" onClick={handleChangePassword}>
                   <Key className="h-4 w-4 mr-2" />
@@ -665,18 +665,18 @@ export default function Settings() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5" />
-                  Authentification à Deux Facteurs
+                  Two-Factor Authentication
                 </CardTitle>
                 <CardDescription>
-                  Ajoutez une couche de sécurité supplémentaire
+                  Add an extra layer of security
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Activer 2FA</Label>
+                    <Label>Enable 2FA</Label>
                     <p className="text-sm text-muted-foreground">
-                      Utiliser une application d'authentification
+                      Use an authentication app
                     </p>
                   </div>
                   <Switch
@@ -689,7 +689,7 @@ export default function Settings() {
                 {security.twoFactorEnabled && (
                   <div className="p-4 bg-muted rounded-lg">
                     <p className="text-sm">
-                      Scannez le code QR avec votre application d'authentification (Google Authenticator, Authy, etc.)
+                      Scan the QR code with your authentication app (Google Authenticator, Authy, etc.)
                     </p>
                     <div className="w-32 h-32 bg-white mx-auto mt-4 rounded-lg flex items-center justify-center text-4xl">
                       📱
@@ -708,7 +708,7 @@ export default function Settings() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Délai d'Expiration de Session</Label>
+                  <Label>Session Timeout</Label>
                   <Select
                     value={security.sessionTimeout}
                     onValueChange={(value) => setSecurity({ ...security, sessionTimeout: value })}
@@ -719,21 +719,21 @@ export default function Settings() {
                     <SelectContent>
                       <SelectItem value="15">15 minutes</SelectItem>
                       <SelectItem value="30">30 minutes</SelectItem>
-                      <SelectItem value="60">1 heure</SelectItem>
-                      <SelectItem value="120">2 heures</SelectItem>
+                      <SelectItem value="60">1 hour</SelectItem>
+                      <SelectItem value="120">2 hours</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label className="text-destructive">Déconnecter Toutes les Sessions</Label>
+                    <Label className="text-destructive">Disconnect All Sessions</Label>
                     <p className="text-sm text-muted-foreground">
-                      Déconnecte tous les appareils sauf celui-ci
+                      Disconnects all devices except this one
                     </p>
                   </div>
                   <Button variant="destructive" size="sm">
-                    Déconnecter
+                    Disconnect
                   </Button>
                 </div>
               </CardContent>

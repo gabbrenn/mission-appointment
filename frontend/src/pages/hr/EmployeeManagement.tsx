@@ -150,7 +150,7 @@ export default function EmployeeManagement() {
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Nouvel Employé</DialogTitle>
+                  <DialogTitle>New Employee</DialogTitle>
                   <DialogDescription>
                     Create new employee profile
                   </DialogDescription>
@@ -158,11 +158,11 @@ export default function EmployeeManagement() {
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName">Prénom</Label>
+                      <Label htmlFor="firstName">First Name</Label>
                       <Input id="firstName" placeholder="Jean" />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="lastName">Nom</Label>
+                      <Label htmlFor="lastName">Last Name</Label>
                       <Input id="lastName" placeholder="Ndayishimiye" />
                     </div>
                   </div>
@@ -172,10 +172,10 @@ export default function EmployeeManagement() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="department">Département</Label>
+                      <Label htmlFor="department">Department</Label>
                       <Select>
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner" />
+                          <SelectValue placeholder="Select" />
                         </SelectTrigger>
                         <SelectContent>
                           {departments.map(dept => (
@@ -185,21 +185,21 @@ export default function EmployeeManagement() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="role">Rôle</Label>
+                      <Label htmlFor="role">Role</Label>
                       <Select defaultValue="employee">
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="employee">Employé</SelectItem>
-                          <SelectItem value="department_head">Chef de Département</SelectItem>
+                          <SelectItem value="employee">Employee</SelectItem>
+                          <SelectItem value="department_head">Department Head</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="skills">Compétences (séparées par des virgules)</Label>
-                    <Input id="skills" placeholder="Comptabilité, Audit, Gestion" />
+                    <Label htmlFor="skills">Skills (separated by commas)</Label>
+                    <Input id="skills" placeholder="Accounting, Audit, Management" />
                   </div>
                 </div>
                 <DialogFooter>
@@ -221,7 +221,7 @@ export default function EmployeeManagement() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Employés</p>
+                  <p className="text-sm text-muted-foreground">Total Employees</p>
                   <p className="text-2xl font-bold">{employees.length}</p>
                 </div>
                 <Users className="h-8 w-8 text-muted-foreground" />
@@ -232,7 +232,7 @@ export default function EmployeeManagement() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Disponibles</p>
+                  <p className="text-sm text-muted-foreground">Available</p>
                   <p className="text-2xl font-bold text-green-600">
                     {employees.filter(e => e.isAvailable).length}
                   </p>
@@ -245,7 +245,7 @@ export default function EmployeeManagement() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">En Mission</p>
+                  <p className="text-sm text-muted-foreground">On Mission</p>
                   <p className="text-2xl font-bold text-orange-600">
                     {employees.filter(e => !e.isAvailable).length}
                   </p>
@@ -258,7 +258,7 @@ export default function EmployeeManagement() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Départements</p>
+                  <p className="text-sm text-muted-foreground">Departments</p>
                   <p className="text-2xl font-bold">{departments.length}</p>
                 </div>
                 <Shield className="h-8 w-8 text-muted-foreground" />
@@ -282,10 +282,10 @@ export default function EmployeeManagement() {
               </div>
               <Select value={selectedDept} onValueChange={setSelectedDept}>
                 <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Département" />
+                  <SelectValue placeholder="Department" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous les départements</SelectItem>
+                  <SelectItem value="all">All departments</SelectItem>
                   {departments.map(dept => (
                     <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                   ))}
@@ -293,17 +293,17 @@ export default function EmployeeManagement() {
               </Select>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Statut" />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous les statuts</SelectItem>
-                  <SelectItem value="available">Disponible</SelectItem>
-                  <SelectItem value="unavailable">Indisponible</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="available">Available</SelectItem>
+                  <SelectItem value="unavailable">Unavailable</SelectItem>
                 </SelectContent>
               </Select>
               <Button variant="outline" onClick={handleExport}>
                 <Download className="mr-2 h-4 w-4" />
-                Exporter
+                Export
               </Button>
             </div>
           </CardContent>
@@ -313,20 +313,20 @@ export default function EmployeeManagement() {
         <Card>
           <CardHeader>
             <CardTitle>
-              Annuaire des Employés ({filteredEmployees.length})
+              Employee Directory ({filteredEmployees.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nom</TableHead>
+                  <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Département</TableHead>
+                  <TableHead>Department</TableHead>
                   <TableHead className="text-center">Missions</TableHead>
-                  <TableHead className="text-center">Équité</TableHead>
-                  <TableHead className="text-center">Statut</TableHead>
-                  <TableHead>Dernière Connexion</TableHead>
+                  <TableHead className="text-center">Equity</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead>Last Login</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -382,12 +382,12 @@ export default function EmployeeManagement() {
                         {employee.isAvailable ? (
                           <>
                             <UserCheck className="h-3 w-3 mr-1" />
-                            Disponible
+                            Available
                           </>
                         ) : (
                           <>
                             <UserX className="h-3 w-3 mr-1" />
-                            Indisponible
+                            Unavailable
                           </>
                         )}
                       </Badge>
@@ -412,7 +412,7 @@ export default function EmployeeManagement() {
                             }}
                           >
                             <Edit className="mr-2 h-4 w-4" />
-                            Modifier
+                            Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleToggleAvailability(employee)}
@@ -420,12 +420,12 @@ export default function EmployeeManagement() {
                             {employee.isAvailable ? (
                               <>
                                 <UserX className="mr-2 h-4 w-4" />
-                                Marquer Indisponible
+                                Mark Unavailable
                               </>
                             ) : (
                               <>
                                 <UserCheck className="mr-2 h-4 w-4" />
-                                Marquer Disponible
+                                Mark Available
                               </>
                             )}
                           </DropdownMenuItem>
@@ -435,7 +435,7 @@ export default function EmployeeManagement() {
                             className="text-red-600"
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Supprimer
+                            Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -460,14 +460,14 @@ export default function EmployeeManagement() {
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="editFirstName">Prénom</Label>
+                    <Label htmlFor="editFirstName">First Name</Label>
                     <Input 
                       id="editFirstName" 
                       defaultValue={selectedEmployee.firstName} 
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="editLastName">Nom</Label>
+                    <Label htmlFor="editLastName">Last Name</Label>
                     <Input 
                       id="editLastName" 
                       defaultValue={selectedEmployee.lastName} 
@@ -484,7 +484,7 @@ export default function EmployeeManagement() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="editDepartment">Département</Label>
+                    <Label htmlFor="editDepartment">Department</Label>
                     <Select defaultValue={selectedEmployee.department}>
                       <SelectTrigger>
                         <SelectValue />
@@ -497,20 +497,20 @@ export default function EmployeeManagement() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="editStatus">Statut</Label>
+                    <Label htmlFor="editStatus">Status</Label>
                     <Select defaultValue={selectedEmployee.isAvailable ? "available" : "unavailable"}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="available">Disponible</SelectItem>
-                        <SelectItem value="unavailable">Indisponible</SelectItem>
+                        <SelectItem value="available">Available</SelectItem>
+                        <SelectItem value="unavailable">Unavailable</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="editSkills">Compétences</Label>
+                  <Label htmlFor="editSkills">Skills</Label>
                   <Input 
                     id="editSkills" 
                     defaultValue={selectedEmployee.skills.join(', ')} 
@@ -520,10 +520,10 @@ export default function EmployeeManagement() {
             )}
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                Annuler
+                Cancel
               </Button>
               <Button onClick={handleEditEmployee}>
-                Enregistrer
+                Save
               </Button>
             </DialogFooter>
           </DialogContent>

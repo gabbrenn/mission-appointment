@@ -120,7 +120,7 @@ export default function DirectorDashboard() {
               <BudgetGauge 
                 used={executiveKPIs.costEfficiency} 
                 total={100}
-                label="Score d'Efficacité"
+                label="Efficiency Score"
                 color="accent"
                 suffix="%"
               />
@@ -135,7 +135,7 @@ export default function DirectorDashboard() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-primary" />
-                Carte des Missions
+                Mission Map
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -148,7 +148,7 @@ export default function DirectorDashboard() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <DollarSign className="h-5 w-5 text-primary" />
-                Budget par Département
+                Budget by Department
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -169,9 +169,9 @@ export default function DirectorDashboard() {
                     />
                     <Tooltip 
                       formatter={(value: number) => formatCurrency(value)}
-                      labelFormatter={(label) => `Département: ${label}`}
+                      labelFormatter={(label) => `Department: ${label}`}
                     />
-                    <Bar dataKey="allocated" name="Alloué" fill="hsl(var(--primary))" opacity={0.3} radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="allocated" name="Allocated" fill="hsl(var(--primary))" opacity={0.3} radius={[0, 4, 4, 0]} />
                     <Bar dataKey="used" name="Used" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]}>
                       {budgetByDepartment.map((entry, index) => (
                         <Cell 
