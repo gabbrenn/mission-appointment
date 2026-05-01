@@ -1,5 +1,5 @@
 import { Prisma, MissionStatus } from "@prisma/client";
-import prisma from "../lib/prisma";
+import {prisma} from "../config/prisma";
 import { MissionFilterDto } from "../types/mission.dto";
 
 export class MissionRepository {

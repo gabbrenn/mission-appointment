@@ -106,4 +106,30 @@ export class AuthController {
             next(error);
         }
     }
+
+    async forgotPassword(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { email } = req.body;
+            if (!email) {
+                throw new BadRequestError("Email is required");
+            }
+            const result = await this.authService.forgotPassword(email);
+            return ApiResponseHelper.success(res, result, result.message);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async resetPassword(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { token, password } = req.body;
+            if (!token || !password) {
+                throw new BadRequestError("Token and password are required");
+            }
+            const result = await this.authService.resetPassword(token, password);
+            return ApiResponseHelper.success(res, result, result.message);
+        } catch (error) {
+            next(error);
+        }
+    }
 }

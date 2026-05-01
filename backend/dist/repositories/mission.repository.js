@@ -1,14 +1,11 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MissionRepository = void 0;
 const client_1 = require("@prisma/client");
-const prisma_1 = __importDefault(require("../lib/prisma"));
+const prisma_1 = require("../config/prisma");
 class MissionRepository {
     async createMission(data) {
-        return prisma_1.default.mission.create({
+        return prisma_1.prisma.mission.create({
             data,
             include: {
                 // missionType: true,
@@ -37,7 +34,7 @@ class MissionRepository {
         });
     }
     async getMissionById(id) {
-        return prisma_1.default.mission.findUnique({
+        return prisma_1.prisma.mission.findUnique({
             where: { id },
             include: {
                 // missionType: true,
@@ -80,7 +77,7 @@ class MissionRepository {
             where.startDate = { gte: new Date(filters.startDate) };
         if (filters?.endDate)
             where.endDate = { lte: new Date(filters.endDate) };
-        return prisma_1.default.mission.findMany({
+        return prisma_1.prisma.mission.findMany({
             where,
             include: {
                 //missionType: true,
@@ -110,7 +107,7 @@ class MissionRepository {
         });
     }
     async updateMission(id, data) {
-        return prisma_1.default.mission.update({
+        return prisma_1.prisma.mission.update({
             where: { id },
             data,
             include: {
@@ -132,7 +129,7 @@ class MissionRepository {
         });
     }
     async deleteMission(id) {
-        return prisma_1.default.mission.update({
+        return prisma_1.prisma.mission.update({
             where: { id },
             data: { status: client_1.MissionStatus.CANCELLED },
         });
@@ -142,7 +139,7 @@ class MissionRepository {
         const year = now.getFullYear();
         const month = (now.getMonth() + 1).toString().padStart(2, "0");
         // Find the last mission number for this month
-        const lastMission = await prisma_1.default.mission.findFirst({
+        const lastMission = await prisma_1.prisma.mission.findFirst({
             where: {
                 missionNumber: {
                     startsWith: `${year}${month}`,
@@ -159,7 +156,7 @@ class MissionRepository {
     }
     // Get eligible employees for auto-assignment
     async getEligibleEmployees(departmentId, requiredSkills = []) {
-        return prisma_1.default.user.findMany({
+        return prisma_1.prisma.user.findMany({
             where: {
                 departmentId,
                 accountStatus: "ACTIVE",

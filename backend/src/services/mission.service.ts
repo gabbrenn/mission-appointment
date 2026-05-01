@@ -4,7 +4,7 @@ import { DepartmentRepository } from "../repositories/department.repository";
 import { ApiError } from "../utils/ApiError";
 import { CreateMissionDto, UpdateMissionDto, MissionFilterDto, AutoAssignmentDto, AssignmentResultDto } from "../types/mission.dto";
 import { Prisma, MissionStatus, AssignmentStatus } from "@prisma/client";
-import prisma from "../lib/prisma";
+import {prisma} from "../config/prisma";
 
 export class MissionService {
     private missionRepository: MissionRepository;
@@ -443,6 +443,302 @@ export class MissionService {
                 },
             },
             orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    // Employee declines assignment and requests substitution
+    async declineWithSubstitution(
+        assignmentId: string,
+        userId: string,
+        reasonCategory: string,
+        detailedReason: string,
+        supportingDocuments: string[]
+    ) {
+        const assignment = await prisma.missionAssignment.findUnique({
+            where: { id: assignmentId },
+            include: { mission: true },
+        });
+
+        if (!assignment) {
+            throw new ApiError("Assignment not found", 404);
+        }
+
+        if (assignment.employeeId !== userId) {
+            throw new ApiError("Unauthorized to decline this assignment", 403);
+        }
+
+        if (assignment.assignmentStatus !== 'PENDING') {
+            throw new ApiError("Assignment has already been responded to", 400);
+        }
+
+        // Create substitution request
+        const substitutionRequest = await prisma.substitutionRequest.create({
+            data: {
+                assignment: { connect: { id: assignmentId } },
+                employee: { connect: { id: userId } },
+                reasonCategory: reasonCategory as any,
+                detailedReason,
+                supportingDocuments,
+                status: 'PENDING',
+            },
+        });
+
+        // Update assignment status to declined (pending substitution approval)
+        const updatedAssignment = await prisma.missionAssignment.update({
+            where: { id: assignmentId },
+            data: {
+                assignmentStatus: 'DECLINED',
+                responseNotes: `Substitution requested: ${detailedReason}`,
+                respondedAt: new Date(),
+            },
+            include: {
+                mission: true,
+                employee: true,
+                substitutionRequest: true,
+            },
+        });
+
+        return {
+            assignment: updatedAssignment,
+            substitutionRequest,
+        };
+    }
+
+    // Process (approve/reject) a substitution request
+    async processSubstitutionRequest(
+        requestId: string,
+        userId: string,
+        userRole: string,
+        status: 'APPROVED' | 'REJECTED',
+        reviewerComments?: string
+    ) {
+        const substitutionRequest = await prisma.substitutionRequest.findUnique({
+            where: { id: requestId },
+            include: {
+                assignment: {
+                    include: {
+                        mission: true,
+                        employee: true,
+                    },
+                },
+            },
+        });
+
+        if (!substitutionRequest) {
+            throw new ApiError("Substitution request not found", 404);
+        }
+
+        if (substitutionRequest.status !== 'PENDING') {
+            throw new ApiError("Substitution request has already been processed", 400);
+        }
+
+        // Check authorization (HR, Department Head, Director, Admin)
+        const authorizedRoles = ['HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'HR', 'DIRECTOR', 'ADMIN'];
+        if (!authorizedRoles.includes(userRole)) {
+            throw new ApiError("Unauthorized to process substitution requests", 403);
+        }
+
+        // Update substitution request
+        const updatedRequest = await prisma.substitutionRequest.update({
+            where: { id: requestId },
+            data: {
+                status,
+                reviewerComments,
+                reviewedAt: new Date(),
+            },
+        });
+
+        // Update assignment based on decision
+        if (status === 'APPROVED') {
+            // Mark original assignment as substituted
+            await prisma.missionAssignment.update({
+                where: { id: substitutionRequest.assignmentId },
+                data: {
+                    assignmentStatus: 'SUBSTITUTED',
+                },
+            });
+
+            // Update mission status to pending assignment for re-assignment
+            await prisma.mission.update({
+                where: { id: substitutionRequest.assignment.missionId },
+                data: {
+                    status: 'PENDING_ASSIGNMENT',
+                },
+            });
+        } else {
+            // Rejected - revert assignment to pending
+            await prisma.missionAssignment.update({
+                where: { id: substitutionRequest.assignmentId },
+                data: {
+                    assignmentStatus: 'PENDING',
+                    respondedAt: null,
+                    responseNotes: `Substitution rejected: ${reviewerComments || 'Request denied by reviewer'}`,
+                },
+            });
+        }
+
+        return updatedRequest;
+    }
+
+    // Get substitution requests (all for managers, own for employees)
+    async getSubstitutionRequests(userId: string, userRole: string, status?: string) {
+        const whereClause: any = {};
+
+        // Employees can only see their own requests
+        if (userRole === 'EMPLOYEE') {
+            whereClause.employeeId = userId;
+        }
+
+        // Filter by status if provided
+        if (status) {
+            whereClause.status = status;
+        }
+
+        return prisma.substitutionRequest.findMany({
+            where: whereClause,
+            include: {
+                assignment: {
+                    include: {
+                        mission: {
+                            include: {
+                                department: true,
+                            },
+                        },
+                        employee: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                email: true,
+                                employeeId: true,
+                            },
+                        },
+                    },
+                },
+                employee: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        employeeId: true,
+                    },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    // Get a specific substitution request by ID
+    async getSubstitutionRequestById(requestId: string, userId: string, userRole: string) {
+        const request = await prisma.substitutionRequest.findUnique({
+            where: { id: requestId },
+            include: {
+                assignment: {
+                    include: {
+                        mission: {
+                            include: {
+                                department: true,
+                            },
+                        },
+                        employee: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                email: true,
+                                employeeId: true,
+                            },
+                        },
+                    },
+                },
+                employee: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        employeeId: true,
+                    },
+                },
+            },
+        });
+
+        if (!request) {
+            throw new ApiError("Substitution request not found", 404);
+        }
+
+        // Check authorization
+        if (userRole === 'EMPLOYEE' && request.employeeId !== userId) {
+            throw new ApiError("Unauthorized to view this request", 403);
+        }
+
+        return request;
+    }
+
+    // Get substitution assignments for current user
+    async getMySubstitutionAssignments(userId: string) {
+        return prisma.missionAssignment.findMany({
+            where: {
+                employeeId: userId,
+                isSubstitution: true,
+            },
+            include: {
+                mission: {
+                    include: {
+                        department: true,
+                    },
+                },
+                originalAssignment: {
+                    include: {
+                        employee: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                employeeId: true,
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: { assignedAt: 'desc' },
+        });
+    }
+
+    async submitMissionReport(missionId: string, userId: string, activityReport: string) {
+        const mission = await this.getMissionById(missionId);
+        
+        if (!mission) {
+            throw new ApiError("Mission not found", 404);
+        }
+
+        // Create the report
+        return prisma.missionReport.create({
+            data: {
+                missionId,
+                employeeId: userId,
+                activityReport,
+                status: 'SUBMITTED',
+                submittedAt: new Date(),
+            }
+        });
+    }
+
+    async getMissionReport(missionId: string) {
+        return prisma.missionReport.findFirst({
+            where: { missionId },
+            include: {
+                employee: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
         });
     }
 }

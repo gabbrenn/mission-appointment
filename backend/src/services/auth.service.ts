@@ -4,14 +4,19 @@ import { UserRepository } from '../repositories/user.repository';
 import { AuditLogRepository } from '../repositories/auditLog.repository';
 import { User } from '@prisma/client';
 import { hashPassword } from '../utils/password';
+import crypto from 'crypto';
+import { EmailService } from './email.service';
+import { ApiError } from '../utils/ApiError';
 
 export class AuthService {
   private userRepository: UserRepository;
   private auditLogRepository: AuditLogRepository;
+  private emailService: EmailService;
 
   constructor() {
     this.userRepository = new UserRepository();
     this.auditLogRepository = new AuditLogRepository();
+    this.emailService = new EmailService();
   }
 
   async login(email: string, password: string, ipAddress?: string, userAgent?: string) {
@@ -75,22 +80,6 @@ export class AuthService {
     };
   }
 
-  // async register(data: {
-  //   email: string;
-  //   password: string;
-  //   firstName: string;
-  //   lastName: string;
-  //   role: 'admin' | 'user';
-  // }) {
-  //   // Check if email already exists
-  //   const existingUser = await this.userRepository.getUserByEmail(data.email);
-  //   if (existingUser) {
-  //     throw new Error('Email already in use');
-  //   }
-  //   data.password = await hashPassword(data.password);
-  //   return this.userRepository.createUser(data);
-  // }
-
   async logout(userId: string, ipAddress?: string, userAgent?: string) {
     // Log the logout action to AuditLog
     await this.auditLogRepository.createAuditLog({
@@ -109,4 +98,43 @@ export class AuthService {
   async getLoginHistory(userId: string) {
     return await this.auditLogRepository.getLoginLogsByUser(userId);
   }
-}
+
+  async forgotPassword(email: string) {
+    const user = await this.userRepository.getUserByEmail(email);
+    if (!user) {
+      // For security, don't reveal if user exists
+      return { message: 'Si cet e-mail est enregistré, vous recevrez un lien de réinitialisation.' };
+    }
+
+    // Generate token
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 3600000); // 1 hour
+
+    await this.userRepository.updateUser(user.id, {
+      resetPasswordToken: token,
+      resetPasswordExpires: expires,
+    });
+
+    await this.emailService.sendPasswordResetEmail(email, token);
+
+    return { message: 'Si cet e-mail est enregistré, vous recevrez un lien de réinitialisation.' };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const user = await this.userRepository.getUserByResetToken(token);
+    
+    if (!user || !user.resetPasswordExpires || user.resetPasswordExpires < new Date()) {
+      throw new ApiError('Le lien de réinitialisation est invalide ou a expiré.', 400);
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+
+    await this.userRepository.updateUser(user.id, {
+      password: hashedPassword,
+      resetPasswordToken: null,
+      resetPasswordExpires: null,
+    });
+
+    return { message: 'Votre mot de passe a été réinitialisé avec succès.' };
+  }
+}

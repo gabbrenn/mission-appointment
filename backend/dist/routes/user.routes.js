@@ -46,7 +46,7 @@ const validateRequest = (req, res, next) => {
  *       403:
  *         description: Forbidden
  */
-router.get("/", auth_1.authenticate, (0, auth_1.authorize)(["ADMIN", "HR"]), (req, res, next) => userController.getAllUsers(req, res, next));
+router.get("/", auth_1.authenticate, (0, auth_1.authorize)(["ADMIN", "HR", "DIRECTOR"]), (req, res, next) => userController.getAllUsers(req, res, next));
 /**
  * @swagger
  * /api/users/{id}:

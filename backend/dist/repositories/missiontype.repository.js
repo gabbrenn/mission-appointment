@@ -1,37 +1,34 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MissionTypeRepository = void 0;
-const prisma_1 = __importDefault(require("../lib/prisma"));
+const prisma_1 = require("../config/prisma");
 class MissionTypeRepository {
     async createMissionType(data) {
-        return prisma_1.default.missionType.create({ data });
+        return prisma_1.prisma.missionType.create({ data });
     }
     async getAllMissionTypes() {
-        return prisma_1.default.missionType.findMany({
+        return prisma_1.prisma.missionType.findMany({
             orderBy: { createdAt: "desc" },
         });
     }
     async getMissionTypeById(id) {
-        return prisma_1.default.missionType.findUnique({
+        return prisma_1.prisma.missionType.findUnique({
             where: { id },
         });
     }
     async findMissionTypeByName(name) {
-        return prisma_1.default.missionType.findUnique({
+        return prisma_1.prisma.missionType.findUnique({
             where: { name },
         });
     }
     async updateMissionType(id, data) {
-        return prisma_1.default.missionType.update({
+        return prisma_1.prisma.missionType.update({
             where: { id },
             data,
         });
     }
     async softDeleteMissionType(id) {
-        return prisma_1.default.missionType.update({
+        return prisma_1.prisma.missionType.update({
             where: { id },
             data: { status: "INACTIVE" },
         });

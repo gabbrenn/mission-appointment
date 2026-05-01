@@ -37,7 +37,7 @@ CREATE TABLE "User" (
     "availabilityStatus" "AvailabilityStatus" NOT NULL DEFAULT 'AVAILABLE',
     "accountStatus" "AccountStatus" NOT NULL DEFAULT 'ACTIVE',
     "lastLogin" TIMESTAMP(3),
-    "departmentId" UUID NOT NULL,
+    "departmentId" UUID,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -52,6 +52,7 @@ CREATE TABLE "Department" (
     "description" TEXT,
     "budgetAllocation" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "status" TEXT NOT NULL DEFAULT 'ACTIVE',
+    "headId" UUID,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -97,7 +98,6 @@ CREATE TABLE "Mission" (
     "budgetCode" TEXT,
     "requiredQualifications" TEXT[],
     "status" "MissionStatus" NOT NULL DEFAULT 'DRAFT',
-    "missionTypeId" UUID NOT NULL,
     "departmentId" UUID NOT NULL,
     "createdById" UUID NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -255,6 +255,9 @@ CREATE UNIQUE INDEX "Department_name_key" ON "Department"("name");
 CREATE UNIQUE INDEX "Department_code_key" ON "Department"("code");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Department_headId_key" ON "Department"("headId");
+
+-- CreateIndex
 CREATE INDEX "Department_code_idx" ON "Department"("code");
 
 -- CreateIndex
@@ -336,13 +339,13 @@ CREATE INDEX "AuditLog_module_idx" ON "AuditLog"("module");
 CREATE INDEX "AuditLog_createdAt_idx" ON "AuditLog"("createdAt");
 
 -- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "Department"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "User" ADD CONSTRAINT "User_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "Department"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Department" ADD CONSTRAINT "Department_headId_fkey" FOREIGN KEY ("headId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "EmployeeSkill" ADD CONSTRAINT "EmployeeSkill_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Mission" ADD CONSTRAINT "Mission_missionTypeId_fkey" FOREIGN KEY ("missionTypeId") REFERENCES "MissionType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Mission" ADD CONSTRAINT "Mission_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "Department"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

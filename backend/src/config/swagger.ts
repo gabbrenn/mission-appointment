@@ -41,11 +41,11 @@ const options: swaggerJsdoc.Options = {
         tags: [
             {
                 name: "Authentication",
-                description: "User authentication endpoints",
+                description: "User authentication endpoints including login, logout, and login history",
             },
             {
                 name: "Users",
-                description: "User management endpoints",
+                description: "User management endpoints including CRUD operations, availability, and skills",
             },
             {
                 name: "Departments",
@@ -54,6 +54,18 @@ const options: swaggerJsdoc.Options = {
             {
                 name: "Mission Types",
                 description: "Mission type management endpoints",
+            },
+            {
+                name: "Missions",
+                description: "Mission management endpoints including creation, updates, and approval workflow",
+            },
+            {
+                name: "Missions - Assignments",
+                description: "Mission assignment endpoints including auto-assignment, employee responses, and substitution requests",
+            },
+            {
+                name: "Missions - Substitution Requests",
+                description: "Substitution request management for employees declining missions and managers approving/rejecting requests",
             },
         ],
     },

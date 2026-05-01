@@ -147,5 +147,93 @@ class MissionController {
             next(error);
         }
     }
+    // Employee declines assignment and requests substitution
+    async declineWithSubstitution(req, res, next) {
+        try {
+            const assignmentId = req.params.assignmentId;
+            const { reasonCategory, detailedReason, supportingDocuments } = req.body;
+            const userId = req.user.id;
+            const result = await this.missionService.declineWithSubstitution(assignmentId, userId, reasonCategory, detailedReason, supportingDocuments || []);
+            return response_1.ApiResponseHelper.success(res, result, "Substitution request created successfully");
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    // Process (approve/reject) a substitution request
+    async processSubstitutionRequest(req, res, next) {
+        try {
+            const requestId = req.params.requestId;
+            const { status, reviewerComments } = req.body;
+            const userId = req.user.id;
+            const userRole = req.user.role;
+            const result = await this.missionService.processSubstitutionRequest(requestId, userId, userRole, status, reviewerComments);
+            return response_1.ApiResponseHelper.success(res, result, "Substitution request processed successfully");
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    // Get substitution requests (all for managers, own for employees)
+    async getSubstitutionRequests(req, res, next) {
+        try {
+            const userId = req.user.id;
+            const userRole = req.user.role;
+            const { status } = req.query;
+            const requests = await this.missionService.getSubstitutionRequests(userId, userRole, status);
+            return response_1.ApiResponseHelper.success(res, requests, "Substitution requests fetched successfully");
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    // Get a specific substitution request by ID
+    async getSubstitutionRequestById(req, res, next) {
+        try {
+            const requestId = req.params.requestId;
+            const userId = req.user.id;
+            const userRole = req.user.role;
+            const request = await this.missionService.getSubstitutionRequestById(requestId, userId, userRole);
+            return response_1.ApiResponseHelper.success(res, request, "Substitution request fetched successfully");
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    // Get substitution assignments for current user
+    async getMySubstitutionAssignments(req, res, next) {
+        try {
+            const userId = req.user.id;
+            const assignments = await this.missionService.getMySubstitutionAssignments(userId);
+            return response_1.ApiResponseHelper.success(res, assignments, "Substitution assignments fetched successfully");
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    // Submit mission report
+    async submitReport(req, res, next) {
+        try {
+            const missionId = req.params.id;
+            const { activityReport } = req.body;
+            const userId = req.user.id;
+            const report = await this.missionService.submitMissionReport(missionId, userId, activityReport);
+            return response_1.ApiResponseHelper.success(res, report, "Report submitted successfully");
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    // Get mission report
+    async getMissionReport(req, res, next) {
+        try {
+            const missionId = req.params.id;
+            const report = await this.missionService.getMissionReport(missionId);
+            return response_1.ApiResponseHelper.success(res, report, "Report fetched successfully");
+        }
+        catch (error) {
+            next(error);
+        }
+    }
 }
 exports.MissionController = MissionController;

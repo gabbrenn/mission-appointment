@@ -1,5 +1,5 @@
 import { Prisma, AvailabilityStatus, AccountStatus } from "@prisma/client";
-import prisma from "../lib/prisma";
+import {prisma} from "../config/prisma";
 
 export class UserRepository {
     async createUser(data: Prisma.UserCreateInput) {
@@ -9,6 +9,12 @@ export class UserRepository {
     async getUserByEmail(email: string) {
         return prisma.user.findUnique({
             where: { email },
+        });
+    }
+
+    async getUserByResetToken(token: string) {
+        return prisma.user.findFirst({
+            where: { resetPasswordToken: token },
         });
     }
 

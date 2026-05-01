@@ -50,7 +50,7 @@ const validateRequest = (req: Request, res: Response, next: NextFunction) => {
 router.get(
     "/",
     authenticate,
-    authorize(["ADMIN", "HR"]),
+    authorize(["ADMIN", "HR", "DIRECTOR"]),
     (req: Request, res: Response, next: NextFunction) => userController.getAllUsers(req, res, next)
 );
 

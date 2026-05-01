@@ -359,8 +359,8 @@ router.get(
  * @swagger
  * /api/missions/assignments/{assignmentId}/respond:
  *   post:
- *     summary: Employee responds to mission assignment
- *     tags: [Missions]
+ *     summary: Employee responds to mission assignment (Accept or Decline)
+ *     tags: [Missions - Assignments]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -370,6 +370,7 @@ router.get(
  *         schema:
  *           type: string
  *           format: uuid
+ *         description: The unique identifier of the mission assignment
  *     requestBody:
  *       required: true
  *       content:
@@ -382,11 +383,23 @@ router.get(
  *               response:
  *                 type: string
  *                 enum: [ACCEPTED, DECLINED]
+ *                 description: Employee's response to the assignment
  *               notes:
  *                 type: string
+ *                 description: Optional notes from the employee explaining their response
  *     responses:
  *       200:
  *         description: Response recorded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MissionAssignment'
+ *       400:
+ *         description: Assignment already responded to or invalid response
+ *       403:
+ *         description: Unauthorized to respond to this assignment
+ *       404:
+ *         description: Assignment not found
  */
 router.post(
     "/assignments/:assignmentId/respond",
@@ -399,6 +412,250 @@ router.post(
     ],
     validateRequest,
     (req: Request, res: Response, next: NextFunction) => missionController.respondToAssignment(req, res, next)
+);
+
+/**
+ * @swagger
+ * /api/missions/assignments/{assignmentId}/decline-with-substitution:
+ *   post:
+ *     summary: Employee declines assignment and requests a substitution
+ *     description: |
+ *       Allows an employee to decline a mission assignment and request a substitution.
+ *       This creates a substitution request that requires approval from management.
+ *       The employee must provide a valid reason category and detailed explanation.
+ *     tags: [Missions - Assignments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: assignmentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The unique identifier of the mission assignment to decline
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - reasonCategory
+ *               - detailedReason
+ *             properties:
+ *               reasonCategory:
+ *                 type: string
+ *                 enum: [MEDICAL, FAMILY_EMERGENCY, CONFLICT_OF_INTEREST, OTHER]
+ *                 description: Category of the reason for substitution request
+ *               detailedReason:
+ *                 type: string
+ *                 minLength: 10
+ *                 description: Detailed explanation for why substitution is needed
+ *               supportingDocuments:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of file paths or URLs for supporting documents
+ *     responses:
+ *       200:
+ *         description: Substitution request created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SubstitutionRequest'
+ *       400:
+ *         description: Assignment already responded to or invalid data
+ *       403:
+ *         description: Unauthorized to decline this assignment
+ *       404:
+ *         description: Assignment not found
+ */
+router.post(
+    "/assignments/:assignmentId/decline-with-substitution",
+    authenticate,
+    authorize(["EMPLOYEE", "ADMIN"]),
+    [
+        param("assignmentId").isUUID().withMessage("Assignment ID must be valid UUID"),
+        body("reasonCategory").isIn(["MEDICAL", "FAMILY_EMERGENCY", "CONFLICT_OF_INTEREST", "OTHER"])
+            .withMessage("Reason category must be one of: MEDICAL, FAMILY_EMERGENCY, CONFLICT_OF_INTEREST, OTHER"),
+        body("detailedReason").notEmpty().withMessage("Detailed reason is required")
+            .isLength({ min: 10 }).withMessage("Detailed reason must be at least 10 characters"),
+        body("supportingDocuments").optional().isArray().withMessage("Supporting documents must be an array"),
+    ],
+    validateRequest,
+    (req: Request, res: Response, next: NextFunction) => missionController.declineWithSubstitution(req, res, next)
+);
+
+/**
+ * @swagger
+ * /api/missions/substitution-requests/{requestId}/approve:
+ *   post:
+ *     summary: Approve or reject a substitution request
+ *     description: |
+ *       Allows authorized personnel (HR, Department Head, Director, Admin) to approve or reject
+ *       a substitution request. When approved, the original assignment is marked as declined
+ *       and a new assignment process may be initiated.
+ *     tags: [Missions - Substitution Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The unique identifier of the substitution request
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [APPROVED, REJECTED]
+ *                 description: Decision on the substitution request
+ *               reviewerComments:
+ *                 type: string
+ *                 description: Comments from the reviewer explaining the decision
+ *     responses:
+ *       200:
+ *         description: Substitution request processed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SubstitutionRequest'
+ *       400:
+ *         description: Request already processed or invalid status
+ *       403:
+ *         description: Unauthorized to approve this request
+ *       404:
+ *         description: Substitution request not found
+ */
+router.post(
+    "/substitution-requests/:requestId/approve",
+    authenticate,
+    authorize(["HEAD_OF_DEPARTMENT", "DEPARTMENT_HEAD", "HR", "DIRECTOR", "ADMIN"]),
+    [
+        param("requestId").isUUID().withMessage("Request ID must be valid UUID"),
+        body("status").isIn(["APPROVED", "REJECTED"]).withMessage("Status must be APPROVED or REJECTED"),
+        body("reviewerComments").optional().isString().withMessage("Comments must be a string"),
+    ],
+    validateRequest,
+    (req: Request, res: Response, next: NextFunction) => missionController.processSubstitutionRequest(req, res, next)
+);
+
+/**
+ * @swagger
+ * /api/missions/substitution-requests:
+ *   get:
+ *     summary: Get all substitution requests (with optional filters)
+ *     description: |
+ *       Retrieves substitution requests. For HR, Department Heads, Directors, and Admins,
+ *       this returns all requests (optionally filtered by status). For employees,
+ *       this returns only their own substitution requests.
+ *     tags: [Missions - Substitution Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [PENDING, APPROVED, REJECTED]
+ *         description: Filter by approval status (not applicable for employee's own requests)
+ *     responses:
+ *       200:
+ *         description: Substitution requests retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/SubstitutionRequest'
+ */
+router.get(
+    "/substitution-requests",
+    authenticate,
+    authorize(["EMPLOYEE", "HEAD_OF_DEPARTMENT", "DEPARTMENT_HEAD", "HR", "DIRECTOR", "ADMIN"]),
+    [
+        query("status").optional().isIn(["PENDING", "APPROVED", "REJECTED"])
+            .withMessage("Status must be one of: PENDING, APPROVED, REJECTED"),
+    ],
+    validateRequest,
+    (req: Request, res: Response, next: NextFunction) => missionController.getSubstitutionRequests(req, res, next)
+);
+
+/**
+ * @swagger
+ * /api/missions/substitution-requests/{requestId}:
+ *   get:
+ *     summary: Get a specific substitution request by ID
+ *     tags: [Missions - Substitution Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The unique identifier of the substitution request
+ *     responses:
+ *       200:
+ *         description: Substitution request retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SubstitutionRequest'
+ *       403:
+ *         description: Unauthorized to view this request
+ *       404:
+ *         description: Substitution request not found
+ */
+router.get(
+    "/substitution-requests/:requestId",
+    authenticate,
+    authorize(["EMPLOYEE", "HEAD_OF_DEPARTMENT", "DEPARTMENT_HEAD", "HR", "DIRECTOR", "ADMIN"]),
+    [
+        param("requestId").isUUID().withMessage("Request ID must be valid UUID"),
+    ],
+    validateRequest,
+    (req: Request, res: Response, next: NextFunction) => missionController.getSubstitutionRequestById(req, res, next)
+);
+
+/**
+ * @swagger
+ * /api/missions/assignments/my-substitutions:
+ *   get:
+ *     summary: Get substitution assignments for current user
+ *     description: |
+ *       Returns mission assignments where the current user is assigned as a substitute
+ *       for another employee who declined the original assignment.
+ *     tags: [Missions - Assignments]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Substitution assignments retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/MissionAssignment'
+ */
+router.get(
+    "/assignments/my-substitutions",
+    authenticate,
+    authorize(["EMPLOYEE", "HEAD_OF_DEPARTMENT", "DEPARTMENT_HEAD", "HR", "DIRECTOR", "ADMIN"]),
+    (req: Request, res: Response, next: NextFunction) => missionController.getMySubstitutionAssignments(req, res, next)
 );
 
 /**
@@ -485,6 +742,47 @@ router.post(
     ],
     validateRequest,
     (req: Request, res: Response, next: NextFunction) => missionController.rejectMission(req, res, next)
+);
+
+/**
+ * @swagger
+ * /api/missions/{id}/report:
+ *   post:
+ *     summary: Submit a report for a mission
+ *     tags: [Missions - Reports]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post(
+    "/:id/report",
+    authenticate,
+    authorize(["EMPLOYEE", "ADMIN", "DIRECTOR"]),
+    [
+        param("id").isUUID().withMessage("Mission ID must be valid UUID"),
+        body("activityReport").isString().withMessage("activityReport must be a string").notEmpty(),
+    ],
+    validateRequest,
+    (req: Request, res: Response, next: NextFunction) => missionController.submitReport(req, res, next)
+);
+
+/**
+ * @swagger
+ * /api/missions/{id}/report:
+ *   get:
+ *     summary: Get a report for a mission
+ *     tags: [Missions - Reports]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get(
+    "/:id/report",
+    authenticate,
+    authorize(["EMPLOYEE", "HEAD_OF_DEPARTMENT", "DEPARTMENT_HEAD", "FINANCE", "HR", "DIRECTOR", "ADMIN"]),
+    [
+        param("id").isUUID().withMessage("Mission ID must be valid UUID"),
+    ],
+    validateRequest,
+    (req: Request, res: Response, next: NextFunction) => missionController.getMissionReport(req, res, next)
 );
 
 export default router;

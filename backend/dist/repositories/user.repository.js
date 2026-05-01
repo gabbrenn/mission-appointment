@@ -1,27 +1,24 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserRepository = void 0;
 const client_1 = require("@prisma/client");
-const prisma_1 = __importDefault(require("../lib/prisma"));
+const prisma_1 = require("../config/prisma");
 class UserRepository {
     async createUser(data) {
-        return prisma_1.default.user.create({ data });
+        return prisma_1.prisma.user.create({ data });
     }
     async getUserByEmail(email) {
-        return prisma_1.default.user.findUnique({
+        return prisma_1.prisma.user.findUnique({
             where: { email },
         });
     }
     async getUserByEmployeeId(employeeId) {
-        return prisma_1.default.user.findUnique({
+        return prisma_1.prisma.user.findUnique({
             where: { employeeId },
         });
     }
     async getUserById(id) {
-        return prisma_1.default.user.findUnique({
+        return prisma_1.prisma.user.findUnique({
             where: { id },
             include: {
                 department: true,
@@ -31,7 +28,7 @@ class UserRepository {
         });
     }
     async getAllUsers() {
-        return prisma_1.default.user.findMany({
+        return prisma_1.prisma.user.findMany({
             include: {
                 department: true,
                 skills: true,
@@ -40,13 +37,13 @@ class UserRepository {
         });
     }
     async updateUser(id, data) {
-        return prisma_1.default.user.update({
+        return prisma_1.prisma.user.update({
             where: { id },
             data,
         });
     }
     async softDeleteUser(id) {
-        return prisma_1.default.user.update({
+        return prisma_1.prisma.user.update({
             where: { id },
             data: {
                 accountStatus: client_1.AccountStatus.INACTIVE,
@@ -55,19 +52,19 @@ class UserRepository {
         });
     }
     async updateAvailability(id, availabilityStatus) {
-        return prisma_1.default.user.update({
+        return prisma_1.prisma.user.update({
             where: { id },
             data: { availabilityStatus },
         });
     }
     async getUserSkills(userId) {
-        return prisma_1.default.employeeSkill.findMany({
+        return prisma_1.prisma.employeeSkill.findMany({
             where: { userId },
             orderBy: { createdAt: "desc" },
         });
     }
     async addUserSkill(userId, skillName) {
-        return prisma_1.default.employeeSkill.create({
+        return prisma_1.prisma.employeeSkill.create({
             data: {
                 userId,
                 skillName,
@@ -75,12 +72,12 @@ class UserRepository {
         });
     }
     async findUserSkillByName(userId, skillName) {
-        return prisma_1.default.employeeSkill.findFirst({
+        return prisma_1.prisma.employeeSkill.findFirst({
             where: { userId, skillName },
         });
     }
     async removeUserSkill(userId, skillId) {
-        return prisma_1.default.employeeSkill.deleteMany({
+        return prisma_1.prisma.employeeSkill.deleteMany({
             where: { id: skillId, userId },
         });
     }
