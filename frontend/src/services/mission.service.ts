@@ -85,6 +85,7 @@ export interface MissionAssignment {
   assignedAt: string;
   respondedAt?: string;
   mission?: Mission; // Optional for when full mission details are included
+  substitutionRequest?: any;
 }
 
 export interface CreateMissionDto {
@@ -221,6 +222,36 @@ export class MissionService {
   async getMyMissions(): Promise<Mission[]> {
     // This would be filtered on backend based on auth user
     return this.getAllMissions();
+  }
+
+  // Employee declines assignment with substitution
+  async declineWithSubstitution(assignmentId: string, data: { reasonCategory: string, detailedReason: string, supportingDocuments?: string[] }): Promise<any> {
+    const response = await api.post(`/missions/assignments/${assignmentId}/decline-with-substitution`, data);
+    return response.data.data;
+  }
+
+  // Submit mission report
+  async submitMissionReport(missionId: string, data: { activityReport: string }): Promise<any> {
+    const response = await api.post(`/missions/${missionId}/report`, data);
+    return response.data.data;
+  }
+
+  // Get mission report
+  async getMissionReport(missionId: string): Promise<any> {
+    const response = await api.get(`/missions/${missionId}/report`);
+    return response.data.data;
+  }
+
+  // Process substitution request
+  async processSubstitutionRequest(requestId: string, status: 'APPROVED' | 'REJECTED', reviewerComments?: string): Promise<any> {
+    const response = await api.post(`/missions/substitution-requests/${requestId}/approve`, { status, reviewerComments });
+    return response.data.data;
+  }
+
+  // Get substitution request by ID
+  async getSubstitutionRequestById(requestId: string): Promise<any> {
+    const response = await api.get(`/missions/substitution-requests/${requestId}`);
+    return response.data.data;
   }
 }
 

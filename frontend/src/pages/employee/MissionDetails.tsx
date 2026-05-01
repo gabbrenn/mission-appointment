@@ -4,12 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
-  MapPin, 
-  Calendar, 
-  Clock, 
-  DollarSign, 
-  User, 
+import {
+  MapPin,
+  Calendar,
+  Clock,
+  DollarSign,
+  User,
   FileText,
   Download,
   CheckCircle,
@@ -36,7 +36,7 @@ export default function MissionDetails() {
   const [assignment, setAssignment] = useState<MissionAssignment | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCompleting, setIsCompleting] = useState(false);
-  
+
   const fetchMissionDetails = useCallback(async () => {
     if (!id) return;
 
@@ -76,7 +76,7 @@ export default function MissionDetails() {
 
   const handleResponse = async (response: 'ACCEPTED' | 'DECLINED') => {
     if (!assignment) return;
-    
+
     try {
       await missionService.respondToAssignment(assignment.id, response);
 
@@ -133,7 +133,7 @@ export default function MissionDetails() {
       </DashboardLayout>
     );
   }
-  
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PENDING': return 'bg-yellow-500';
@@ -186,8 +186,8 @@ export default function MissionDetails() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="icon"
               onClick={() => navigate('/employee')}
             >
@@ -219,22 +219,22 @@ export default function MissionDetails() {
                   </p>
                 </div>
                 <div className="flex gap-3">
-                  <Button 
+                  {/* <Button 
                     variant="outline" 
                     className="border-red-500 text-red-500 hover:bg-red-50"
                     onClick={() => handleResponse('DECLINED')}
                   >
                     <XCircle className="h-4 w-4 mr-2" />
                     Decline
-                  </Button>
-                  <Button 
+                  </Button> */}
+                  <Button
                     variant="outline"
-                    onClick={() => navigate(`/employee/mission/${mission.id}/substitution`)}
+                    onClick={() => navigate(`/employee/substitution/${assignment?.id}`, { state: { mission } })}
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Request Substitution
                   </Button>
-                  <Button 
+                  <Button
                     className="bg-green-600 hover:bg-green-700"
                     onClick={() => handleResponse('ACCEPTED')}
                   >
@@ -432,7 +432,7 @@ export default function MissionDetails() {
                   <Button
                     className="w-full"
                     variant="secondary"
-                    onClick={() => navigate(`/employee/report/${mission.id}`)}
+                    onClick={() => navigate(`/employee/report/${mission.id}`, { state: { mission } })}
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     Submit Report

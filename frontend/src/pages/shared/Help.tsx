@@ -136,6 +136,18 @@ export default function Help() {
       icon: Settings,
       sections: ['User management', 'System configuration', 'Audit and security']
     },
+    { 
+      title: 'HR Guide', 
+      description: 'Employee management and skills', 
+      icon: Users,
+      sections: ['Employee directory', 'Skills tracking', 'Role management']
+    },
+    { 
+      title: 'Director Guide', 
+      description: 'Strategic oversight and reporting', 
+      icon: Shield,
+      sections: ['Executive dashboard', 'System analytics', 'Final approvals']
+    },
   ];
 
   const videos = [

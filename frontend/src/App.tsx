@@ -11,7 +11,8 @@ import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
 
 // Auth Pages
-import PasswordReset from "./pages/auth/PasswordReset";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import FirstLogin from "./pages/auth/FirstLogin";
 
 // Employee Pages
@@ -85,41 +86,42 @@ const App = () => (
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/first-login" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR_GENERAL', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR', 'ADMIN']}>
                 <FirstLogin />
               </ProtectedRoute>
             } />
-            <Route path="/password-reset" element={<PasswordReset />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             
             {/* Employee Routes */}
             <Route path="/employee" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR_GENERAL', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR', 'ADMIN']}>
                 <EmployeeDashboard />
               </ProtectedRoute>
             } />
             <Route path="/employee/missions" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR_GENERAL', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR', 'ADMIN']}>
                 <MissionsList />
               </ProtectedRoute>
             } />
             <Route path="/employee/mission/:id" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR_GENERAL', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR', 'ADMIN']}>
                 <MissionDetails />
               </ProtectedRoute>
             } />
-            <Route path="/employee/substitution/:missionId" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR_GENERAL', 'ADMIN']}>
+            <Route path="/employee/substitution/:assignmentId" element={
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR', 'ADMIN']}>
                 <SubstitutionForm />
               </ProtectedRoute>
             } />
             <Route path="/employee/report/:missionId" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR_GENERAL', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR', 'ADMIN']}>
                 <ReportForm />
               </ProtectedRoute>
             } />
             <Route path="/employee/reports" element={
-              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR_GENERAL', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['EMPLOYEE', 'HEAD_OF_DEPARTMENT', 'DEPARTMENT_HEAD', 'FINANCE', 'HR', 'DIRECTOR', 'ADMIN']}>
                 <ReportsList />
               </ProtectedRoute>
             } />
@@ -196,116 +198,116 @@ const App = () => (
             
             {/* HR Routes */}
             <Route path="/hr" element={
-              <ProtectedRoute allowedRoles={['HR', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['HR', 'ADMIN','DIRECTOR']}>
                 <HRDashboard />
               </ProtectedRoute>
             } />
             <Route path="/hr/pending" element={
-              <ProtectedRoute allowedRoles={['HR', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['HR', 'ADMIN','DIRECTOR']}>
                 <PendingConfirmations />
               </ProtectedRoute>
             } />
             <Route path="/hr/confirmation/:id" element={
-              <ProtectedRoute allowedRoles={['HR', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['HR', 'ADMIN','DIRECTOR']}>
                 <HRConfirmation />
               </ProtectedRoute>
             } />
             <Route path="/hr/employees" element={
-              <ProtectedRoute allowedRoles={['HR', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['HR', 'ADMIN','DIRECTOR']}>
                 <EmployeeManagement />
               </ProtectedRoute>
             } />
             <Route path="/hr/analytics" element={
-              <ProtectedRoute allowedRoles={['HR', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['HR', 'ADMIN','DIRECTOR']}>
                 <FairnessAnalytics />
               </ProtectedRoute>
             } />
             
             {/* Director Routes */}
             <Route path="/director" element={
-              <ProtectedRoute allowedRoles={['DIRECTOR_GENERAL', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['DIRECTOR', 'ADMIN','DIRECTOR']}>
                 <DirectorDashboard />
               </ProtectedRoute>
             } />
             <Route path="/director/approvals" element={
-              <ProtectedRoute allowedRoles={['DIRECTOR_GENERAL', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['DIRECTOR', 'ADMIN']}>
                 <ApprovalsList />
               </ProtectedRoute>
             } />
             <Route path="/director/approval/:id" element={
-              <ProtectedRoute allowedRoles={['DIRECTOR_GENERAL', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['DIRECTOR', 'ADMIN']}>
                 <FinalApproval />
               </ProtectedRoute>
             } />
             <Route path="/director/map" element={
-              <ProtectedRoute allowedRoles={['DIRECTOR_GENERAL', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['DIRECTOR', 'ADMIN']}>
                 <MissionMap />
               </ProtectedRoute>
             } />
             <Route path="/director/analytics" element={
-              <ProtectedRoute allowedRoles={['DIRECTOR_GENERAL', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['DIRECTOR', 'ADMIN']}>
                 <DirectorAnalytics />
               </ProtectedRoute>
             } />
             
             {/* Admin Routes */}
             <Route path="/admin" element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={['ADMIN', 'DIRECTOR']}>
                 <AdminDashboard />
               </ProtectedRoute>
             } />
             <Route path="/admin/users" element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={['ADMIN', 'DIRECTOR']}>
                 <AdminUsers />
               </ProtectedRoute>
             } />
             <Route path="/admin/create-mission" element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={['ADMIN', 'DIRECTOR']}>
                 <CreateMission />
               </ProtectedRoute>
             } />
             <Route path="/admin/missions" element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={['ADMIN', 'DIRECTOR']}>
                 <AdminMissions />
               </ProtectedRoute>
             } />
             <Route path="/admin/missions/:id" element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={['ADMIN', 'DIRECTOR']}>
                 <AdminMissionDetails />
               </ProtectedRoute>
             } />
             <Route path="/admin/roles" element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={['ADMIN', 'DIRECTOR']}>
                 <AdminRoles />
               </ProtectedRoute>
             } />
             <Route path="/admin/departments" element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={['ADMIN', 'DIRECTOR']}>
                 <AdminDepartments />
               </ProtectedRoute>
             } />
             <Route path="/admin/config" element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={['ADMIN', 'DIRECTOR']}>
                 <AdminConfig />
               </ProtectedRoute>
             } />
             <Route path="/admin/audit" element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={['ADMIN', 'DIRECTOR']}>
                 <AdminAudit />
               </ProtectedRoute>
             } />
             <Route path="/admin/maintenance" element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={['ADMIN', 'DIRECTOR']}>
                 <AdminMaintenance />
               </ProtectedRoute>
             } />
             <Route path="/admin/support" element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={['ADMIN', 'DIRECTOR']}>
                 <AdminSupport />
               </ProtectedRoute>
             } />
             <Route path="/admin/notifications" element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={['ADMIN', 'DIRECTOR']}>
                 <AdminNotifications />
               </ProtectedRoute>
             } />

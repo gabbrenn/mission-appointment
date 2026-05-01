@@ -110,6 +110,22 @@ class AuthService {
     const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
     return roles.includes(user.role);
   }
+
+  /**
+   * Request password reset link
+   */
+  async forgotPassword(email: string): Promise<any> {
+    const response = await apiClient.post('/auth/forgot-password', { email });
+    return response;
+  }
+
+  /**
+   * Reset password with token
+   */
+  async resetPassword(data: { token: string; password: string }): Promise<any> {
+    const response = await apiClient.post('/auth/reset-password', data);
+    return response;
+  }
 }
 
 // Export singleton instance

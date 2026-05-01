@@ -25,56 +25,41 @@ import {
   Award,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { mockMissions, mockUsers, formatCurrency, formatDate } from "@/lib/mockData";
 import { toast } from "sonner";
+import { missionService } from "@/services/mission.service";
 
 export default function SubstitutionReview() {
   const navigate = useNavigate();
   const { requestId } = useParams();
   const [comments, setComments] = useState('');
-  const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [request, setRequest] = useState<any>(null);
 
-  // Mock substitution request data
-  const request = {
-    id: requestId || 'SUB-001',
-    employeeId: '1',
-    missionId: mockMissions[0]?.id,
-    reason: 'medical',
-    reasonLabel: 'Raison Médicale',
-    explanation: "Je dois subir une intervention chirurgicale programmée qui m'empêchera de participer à cette mission. J'ai fourni les documents médicaux nécessaires.",
-    requestedDate: '2026-01-20',
-    documents: ['certificat_medical.pdf'],
-    status: 'pending',
-    suggestedReplacement: '2',
-  };
-
-  const originalEmployee = mockUsers.find(u => u.id === request.employeeId) || mockUsers[0];
-  const mission = mockMissions.find(m => m.id === request.missionId) || mockMissions[0];
-  const suggestedEmployee = mockUsers.find(u => u.id === request.suggestedReplacement);
-
-  // Alternative candidates (generated from available employees)
-  const candidates = mockUsers
-    .filter(u => u.role === 'employee' && u.id !== request.employeeId && u.isAvailable)
-    .slice(0, 5)
-    .map((user, index) => ({
-      ...user,
-      matchScore: 95 - (index * 8),
-      lastMission: `${12 + index} jours`,
-      missionsThisYear: 2 + index,
-      isSuggested: user.id === request.suggestedReplacement,
-    }));
+  useEffect(() => {
+    if (requestId) {
+        missionService.getSubstitutionRequestById(requestId)
+            .then(data => setRequest(data))
+            .catch(err => {
+                console.error(err);
+                toast.error("Failed to load substitution request");
+            });
+    }
+  }, [requestId]);
 
   const handleApprove = async () => {
-    if (!selectedCandidate) {
-      toast.error("Please select a replacement employee");
-      return;
-    }
+    if (!requestId) return;
     setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    toast.success("Substitution approuvée avec succès");
-    navigate('/department');
+    try {
+        await missionService.processSubstitutionRequest(requestId, 'APPROVED', comments);
+        toast.success("Substitution approuvée avec succès");
+        navigate('/department');
+    } catch (err: any) {
+        toast.error(err.response?.data?.message || "Erreur lors de l'approbation");
+    } finally {
+        setIsProcessing(false);
+    }
   };
 
   const handleReject = async () => {
@@ -82,11 +67,26 @@ export default function SubstitutionReview() {
       toast.error("Please justify the refusal in the comments");
       return;
     }
+    if (!requestId) return;
+
     setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    toast.success("Demande de substitution refusée");
-    navigate('/department');
+    try {
+        await missionService.processSubstitutionRequest(requestId, 'REJECTED', comments);
+        toast.success("Demande de substitution refusée");
+        navigate('/department');
+    } catch (err: any) {
+        toast.error(err.response?.data?.message || "Erreur lors du refus");
+    } finally {
+        setIsProcessing(false);
+    }
   };
+
+  if (!request) {
+      return <div>Loading...</div>;
+  }
+
+  const originalEmployee = request.employee;
+  const mission = request.assignment?.mission;
 
   const getReasonBadgeColor = (reason: string) => {
     switch (reason) {
@@ -180,8 +180,8 @@ export default function SubstitutionReview() {
                       {originalEmployee.department}
                     </p>
                   </div>
-                  <Badge className={getReasonBadgeColor(request.reason)}>
-                    {request.reasonLabel}
+                  <Badge className={getReasonBadgeColor(request.reasonCategory)}>
+                    {request.reasonCategory}
                   </Badge>
                 </div>
 
@@ -190,15 +190,15 @@ export default function SubstitutionReview() {
                 <div>
                   <h4 className="font-medium mb-2">Explication</h4>
                   <p className="text-sm text-muted-foreground bg-white dark:bg-gray-800 p-3 rounded-lg">
-                    {request.explanation}
+                    {request.detailedReason}
                   </p>
                 </div>
 
-                {request.documents.length > 0 && (
+                {request.supportingDocuments && request.supportingDocuments.length > 0 && (
                   <div>
                     <h4 className="font-medium mb-2">Documents Joints</h4>
                     <div className="flex flex-wrap gap-2">
-                      {request.documents.map((doc, index) => (
+                      {request.supportingDocuments.map((doc: string, index: number) => (
                         <Badge key={index} variant="outline" className="cursor-pointer hover:bg-primary/10">
                           <FileText className="h-3 w-3 mr-1" />
                           {doc}
@@ -209,91 +209,8 @@ export default function SubstitutionReview() {
                 )}
 
                 <div className="text-sm text-muted-foreground">
-                  Demande soumise le: {formatDate(request.requestedDate)}
+                  Demande soumise le: {formatDate(request.createdAt)}
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Alternative Candidates */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Candidats de Remplacement
-                </CardTitle>
-                <CardDescription>
-                  Sélectionnez l'employé qui effectuera cette mission
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Employé</TableHead>
-                      <TableHead>Département</TableHead>
-                      <TableHead className="text-center">Score</TableHead>
-                      <TableHead className="text-center">Missions (Année)</TableHead>
-                      <TableHead className="text-center">Dernière Mission</TableHead>
-                      <TableHead className="text-right">Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {candidates.map((candidate) => (
-                      <TableRow 
-                        key={candidate.id}
-                        className={selectedCandidate === candidate.id ? 'bg-primary/5' : ''}
-                      >
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                              <span className="text-xs font-medium text-primary">
-                                {candidate.firstName[0]}{candidate.lastName[0]}
-                              </span>
-                            </div>
-                            <div>
-                              <p className="font-medium">
-                                {candidate.firstName} {candidate.lastName}
-                              </p>
-                              {candidate.isSuggested && (
-                                <Badge variant="secondary" className="text-xs">
-                                  <Star className="h-3 w-3 mr-1" />
-                                  Suggéré
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{candidate.department}</TableCell>
-                        <TableCell className="text-center">
-                          <Badge 
-                            variant={candidate.matchScore >= 85 ? 'default' : 'secondary'}
-                            className={candidate.matchScore >= 85 ? 'bg-green-500' : ''}
-                          >
-                            {candidate.matchScore}%
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-center">{candidate.missionsThisYear}</TableCell>
-                        <TableCell className="text-center">{candidate.lastMission}</TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            size="sm"
-                            variant={selectedCandidate === candidate.id ? "default" : "outline"}
-                            onClick={() => setSelectedCandidate(candidate.id)}
-                          >
-                            {selectedCandidate === candidate.id ? (
-                              <>
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Sélectionné
-                              </>
-                            ) : (
-                              'Sélectionner'
-                            )}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
               </CardContent>
             </Card>
 
@@ -318,52 +235,6 @@ export default function SubstitutionReview() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Selected Candidate Summary */}
-            {selectedCandidate && (
-              <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="h-5 w-5 text-green-600" />
-                    Candidat Sélectionné
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {(() => {
-                    const selected = candidates.find(c => c.id === selectedCandidate);
-                    if (!selected) return null;
-                    return (
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                            <span className="font-semibold text-green-700">
-                              {selected.firstName[0]}{selected.lastName[0]}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="font-medium">
-                              {selected.firstName} {selected.lastName}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {selected.department}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div className="p-2 bg-white dark:bg-gray-800 rounded">
-                            <p className="text-muted-foreground">Score</p>
-                            <p className="font-semibold text-green-600">{selected.matchScore}%</p>
-                          </div>
-                          <div className="p-2 bg-white dark:bg-gray-800 rounded">
-                            <p className="text-muted-foreground">Équité</p>
-                            <p className="font-semibold">{selected.fairnessScore}%</p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </CardContent>
-              </Card>
-            )}
 
             {/* Original Employee Info */}
             <Card>
@@ -412,7 +283,7 @@ export default function SubstitutionReview() {
                 <Button 
                   className="w-full bg-green-600 hover:bg-green-700"
                   onClick={handleApprove}
-                  disabled={isProcessing || !selectedCandidate}
+                  disabled={isProcessing}
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
                   {isProcessing ? 'Traitement...' : 'Approuver la Substitution'}

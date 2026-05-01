@@ -66,6 +66,7 @@ export default function FirstLogin() {
         // Navigate based on role
         const roleRoutes: Record<string, string> = {
           ADMIN: '/admin',
+          DIRECTOR: '/admin', // Assuming directors also go to admin dashboard
         };
         navigate(roleRoutes[user.role] || '/employee', { replace: true });
       }

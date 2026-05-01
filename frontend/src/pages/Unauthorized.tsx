@@ -16,7 +16,7 @@ export default function Unauthorized() {
     // Navigate to user's default dashboard based on role
     const roleRoutes: Record<string, string> = {
       ADMIN: '/admin',
-      DIRECTOR_GENERAL: '/director',
+      DIRECTOR: '/director',
       HEAD_OF_DEPARTMENT: '/department',
       DEPARTMENT_HEAD: '/department',
       FINANCE: '/finance',

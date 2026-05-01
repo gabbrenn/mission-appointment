@@ -6,6 +6,8 @@ import { missionService, Mission } from "@/services/mission.service";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
   Building2,
@@ -15,6 +17,7 @@ import {
   DollarSign,
   CheckCircle2,
   XCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/mockData";
 
@@ -24,6 +27,7 @@ export default function AdminMissionDetails() {
   const [mission, setMission] = useState<Mission | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [substitutionComments, setSubstitutionComments] = useState("");
 
   useEffect(() => {
     const loadMission = async () => {
@@ -83,6 +87,38 @@ export default function AdminMissionDetails() {
     }
   };
 
+  const handleApproveSubstitution = async (requestId: string) => {
+    try {
+      setIsSubmitting(true);
+      await missionService.processSubstitutionRequest(requestId, 'APPROVED', substitutionComments);
+      toast.success("Substitution approved");
+      const updated = await missionService.getMissionById(id!);
+      setMission(updated);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to approve substitution");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRejectSubstitution = async (requestId: string) => {
+    if (!substitutionComments.trim()) {
+      toast.error("Please provide comments for rejection");
+      return;
+    }
+    try {
+      setIsSubmitting(true);
+      await missionService.processSubstitutionRequest(requestId, 'REJECTED', substitutionComments);
+      toast.success("Substitution rejected");
+      const updated = await missionService.getMissionById(id!);
+      setMission(updated);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to reject substitution");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <DashboardLayout userRole="admin">
@@ -98,6 +134,8 @@ export default function AdminMissionDetails() {
       </DashboardLayout>
     );
   }
+
+  const pendingSubstitution = mission.assignments.find(a => a.substitutionRequest?.status === 'PENDING')?.substitutionRequest;
 
 //   const canApprove = !["APPROVED", "REJECTED", "CANCELLED", "COMPLETED"].includes(mission.status);
   const budgetBreakdown = [
@@ -188,6 +226,67 @@ export default function AdminMissionDetails() {
               </CardContent>
             </Card>
 
+            {pendingSubstitution && (
+              <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-amber-600" />
+                    Pending Substitution Request
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Reason</p>
+                      <p className="font-medium">{pendingSubstitution.reasonCategory}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Date Submitted</p>
+                      <p className="font-medium">{new Date(pendingSubstitution.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium mb-1">Detailed Reason</p>
+                    <p className="text-sm text-muted-foreground bg-white dark:bg-gray-800 p-3 rounded-lg border">
+                      {pendingSubstitution.detailedReason}
+                    </p>
+                  </div>
+
+                  <Separator />
+                  
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Review Comments</p>
+                    <Textarea 
+                      placeholder="Add comments for approval or rejection..."
+                      value={substitutionComments}
+                      onChange={(e) => setSubstitutionComments(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button 
+                      className="flex-1 bg-green-600 hover:bg-green-700" 
+                      onClick={() => handleApproveSubstitution(pendingSubstitution.id)}
+                      disabled={isSubmitting}
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-1" />
+                      Approve Substitution
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      className="flex-1" 
+                      onClick={() => handleRejectSubstitution(pendingSubstitution.id)}
+                      disabled={isSubmitting}
+                    >
+                      <XCircle className="h-4 w-4 mr-1" />
+                      Reject Substitution
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
           </div>
 
           <div>
@@ -268,14 +367,23 @@ export default function AdminMissionDetails() {
                 <CardTitle>Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button className="w-full" onClick={handleApprove} disabled={isSubmitting}>
-                  <CheckCircle2 className="h-4 w-4 mr-1" />
-                  Approve Mission
-                </Button>
-                <Button variant="outline" className="w-full" onClick={handleReject} disabled={isSubmitting}>
-                  <XCircle className="h-4 w-4 mr-1" />
-                  Reject Mission
-                </Button>
+                {!pendingSubstitution ? (
+                  <>
+                    <Button className="w-full" onClick={handleApprove} disabled={isSubmitting}>
+                      <CheckCircle2 className="h-4 w-4 mr-1" />
+                      Approve Mission
+                    </Button>
+                    <Button variant="outline" className="w-full" onClick={handleReject} disabled={isSubmitting}>
+                      <XCircle className="h-4 w-4 mr-1" />
+                      Reject Mission
+                    </Button>
+                  </>
+                ) : (
+                  <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded-md text-xs text-amber-800 dark:text-amber-200">
+                    <AlertTriangle className="h-4 w-4 mb-1" />
+                    Handle the pending substitution request first.
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

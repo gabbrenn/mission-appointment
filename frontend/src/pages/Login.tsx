@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +34,7 @@ export default function Login() {
       
       const roleRoutes: Record<string, string> = {
         ADMIN: '/admin',
+        DIRECTOR: '/admin',
       };
       const route = roleRoutes[user.role] || '/employee';
       navigate(route, { replace: true });
@@ -202,12 +203,12 @@ export default function Login() {
                   Remember me
                 </Label>
               </div>
-              <a 
-                href="/forgot-password" 
+              <Link 
+                to="/forgot-password" 
                 className="text-sm text-primary hover:underline font-medium"
               >
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             <Button 

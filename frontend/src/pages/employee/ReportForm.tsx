@@ -26,10 +26,11 @@ import {
   MapPin,
   Calendar,
 } from "lucide-react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { formatCurrency, formatDate, mockMissions } from "@/lib/mockData";
+import { formatCurrency, formatDate } from "@/lib/mockData";
 import { toast } from "sonner";
+import { missionService } from "@/services/mission.service";
 
 interface ExpenseItem {
   id: string;
@@ -42,8 +43,9 @@ interface ExpenseItem {
 export default function ReportForm() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   
-  const mission = mockMissions.find(m => m.id === id) || mockMissions[0];
+  const mission = location.state?.mission || { id, title: "Unknown Mission", budget: 0 };
   
   const [activityReport, setActivityReport] = useState("");
   const [expenses, setExpenses] = useState<ExpenseItem[]>([
@@ -105,11 +107,21 @@ export default function ReportForm() {
       return;
     }
 
+    if (!id) {
+        toast.error("No mission ID found");
+        return;
+    }
+
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast.success("Report submitted successfully");
-    navigate('/employee');
+    try {
+        await missionService.submitMissionReport(id, { activityReport });
+        toast.success("Report submitted successfully");
+        navigate('/employee');
+    } catch (err: any) {
+        toast.error(err.response?.data?.message || "Failed to submit report");
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (

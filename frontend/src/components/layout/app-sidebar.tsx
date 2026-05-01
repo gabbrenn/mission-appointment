@@ -140,7 +140,7 @@ export function AppSidebar({ userRole, userName, userEmail }: AppSidebarProps) {
       {!collapsed && (
         <div className="px-4 py-3 border-b border-sidebar-border">
           <span className="text-xs font-medium text-sidebar-primary bg-sidebar-primary/10 px-2 py-1 rounded-full">
-            {roleLabels[userRole]}
+            {user.role}
           </span>
         </div>
       )}

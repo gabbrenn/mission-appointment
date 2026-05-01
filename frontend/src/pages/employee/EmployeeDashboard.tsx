@@ -13,17 +13,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
-  Briefcase, 
-  Target, 
-  CheckCircle2, 
+import {
+  Briefcase,
+  Target,
+  CheckCircle2,
   Clock,
   ChevronRight,
   TrendingUp,
 } from "lucide-react";
-import { 
-  currentUser, 
-  formatCurrency, 
+import {
+  currentUser,
+  formatCurrency,
   formatDate,
   missionTypes,
 } from "@/lib/mockData";
@@ -56,7 +56,7 @@ export default function EmployeeDashboard() {
 
     fetchAssignments();
   }, []);
-  
+
   // Filter assignments by status
   const pendingAssignments = assignments.filter(
     a => a.assignmentStatus === 'PENDING'
@@ -88,18 +88,18 @@ export default function EmployeeDashboard() {
     }
   };
 
-  const handleDecline = async (assignmentId: string) => {
-    try {
-      await missionService.respondToAssignment(assignmentId, 'DECLINED');
-      // Refresh assignments
-      const data = await missionService.getUserAssignments();
-      setAssignments(data);
-      toast.success("Assignment declined successfully");
-    } catch (error) {
-      console.error('Error declining assignment:', error);
-      toast.error("Failed to decline assignment");
-    }
-  };
+  // const handleDecline = async (assignmentId: string) => {
+  //   try {
+  //     await missionService.respondToAssignment(assignmentId, 'DECLINED');
+  //     // Refresh assignments
+  //     const data = await missionService.getUserAssignments();
+  //     setAssignments(data);
+  //     toast.success("Assignment declined successfully");
+  //   } catch (error) {
+  //     console.error('Error declining assignment:', error);
+  //     toast.error("Failed to decline assignment");
+  //   }
+  // };
 
   return (
     <DashboardLayout
@@ -145,9 +145,9 @@ export default function EmployeeDashboard() {
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">New Assignments</h2>
-            <StatusBadge 
-              status="pending" 
-              label={`${pendingAssignments.length} pending`} 
+            <StatusBadge
+              status="pending"
+              label={`${pendingAssignments.length} pending`}
             />
           </div>
 
@@ -177,21 +177,21 @@ export default function EmployeeDashboard() {
                       </p>
                     )}
                     <div className="flex gap-2 pt-2">
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         onClick={() => handleAccept(assignment)}
                         className="flex-1"
                       >
                         Accept
                       </Button>
-                      <Button 
+                      {/* <Button 
                         size="sm" 
                         variant="outline"
                         onClick={() => handleDecline(assignment.id)}
                         className="flex-1"
                       >
                         Decline
-                      </Button>
+                      </Button> */}
                     </div>
                   </CardContent>
                 </Card>
@@ -213,60 +213,60 @@ export default function EmployeeDashboard() {
             </Card>
           )}
           {/* Recent History */}
-      <Card className="card-gov mt-6">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-semibold">
-              Mission History
-            </CardTitle>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => navigate('/employee/missions')}
-            >
-              View All
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Mission</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Destination</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Budget</TableHead>
-                <TableHead>Assignment</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {assignments.slice(0, 5).map((assignment) => (
-                <TableRow 
-                  key={assignment.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => assignment.mission?.id && navigate(`/employee/mission/${assignment.mission.id}`)}
+          <Card className="card-gov mt-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-semibold">
+                  Mission History
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/employee/missions')}
                 >
-                  <TableCell className="font-medium">
-                    <div>
-                      <p className="font-medium">{assignment.mission?.title || 'N/A'}</p>
-                      <p className="text-xs text-muted-foreground">{assignment.id}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>{assignment.mission?.status || 'N/A'}</TableCell>
-                  <TableCell>{assignment.mission?.destination || 'N/A'}</TableCell>
-                  <TableCell>{assignment.mission?.startDate ? formatDate(assignment.mission.startDate) : 'N/A'}</TableCell>
-                  <TableCell>{assignment.mission?.estimatedBudget ? formatCurrency(Number(assignment.mission.estimatedBudget)) : 'N/A'}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{assignment.assignmentStatus}</Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                  View All
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Mission</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Destination</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Budget</TableHead>
+                    <TableHead>Assignment</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {assignments.slice(0, 5).map((assignment) => (
+                    <TableRow
+                      key={assignment.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => assignment.mission?.id && navigate(`/employee/mission/${assignment.mission.id}`)}
+                    >
+                      <TableCell className="font-medium">
+                        <div>
+                          <p className="font-medium">{assignment.mission?.title || 'N/A'}</p>
+                          <p className="text-xs text-muted-foreground">{assignment.id}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>{assignment.mission?.status || 'N/A'}</TableCell>
+                      <TableCell>{assignment.mission?.destination || 'N/A'}</TableCell>
+                      <TableCell>{assignment.mission?.startDate ? formatDate(assignment.mission.startDate) : 'N/A'}</TableCell>
+                      <TableCell>{assignment.mission?.estimatedBudget ? formatCurrency(Number(assignment.mission.estimatedBudget)) : 'N/A'}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{assignment.assignmentStatus}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Active Missions & Quick Stats */}
@@ -289,10 +289,10 @@ export default function EmployeeDashboard() {
                     <p className="text-xs text-muted-foreground mb-2">
                       {assignment.mission?.destination || 'N/A'}
                     </p>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="w-full h-7" 
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="w-full h-7"
                       onClick={() => assignment.mission?.id && navigate(`/employee/mission/${assignment.mission.id}`)}
                     >
                       View Details <ChevronRight className="ml-1 h-3 w-3" />
@@ -318,14 +318,14 @@ export default function EmployeeDashboard() {
                     <p className="font-medium">{activeAssignments[0].mission?.title || 'N/A'}</p>
                     <div className="text-sm text-muted-foreground space-y-1">
                       <p>📍 {activeAssignments[0].mission?.destination || 'N/A'}</p>
-                      <p>📅 {activeAssignments[0].mission?.startDate && activeAssignments[0].mission?.endDate ? 
+                      <p>📅 {activeAssignments[0].mission?.startDate && activeAssignments[0].mission?.endDate ?
                         `${formatDate(activeAssignments[0].mission.startDate)} - ${formatDate(activeAssignments[0].mission.endDate)}` : 'N/A'
                       }</p>
                       <p>💰 {activeAssignments[0].mission?.estimatedBudget ? formatCurrency(Number(activeAssignments[0].mission.estimatedBudget)) : 'N/A'}</p>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="w-full mt-2"
                       onClick={() => activeAssignments[0].mission?.id && navigate(`/employee/mission/${activeAssignments[0].mission.id}`)}
                     >

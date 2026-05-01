@@ -28,6 +28,7 @@ import { mockUsers } from "@/lib/mockData";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { userService } from "@/services/user.service";
+import { missionService } from "@/services/mission.service";
 import { UserSkill } from "@/types/api.types";
 
 export default function EmployeeProfile() {
@@ -44,9 +45,10 @@ export default function EmployeeProfile() {
     department: currentUser.department,
   });
   
-  const [isAvailable, setIsAvailable] = useState(true);
+  const [isAvailable, setIsAvailable] = useState(user?.availabilityStatus === 'AVAILABLE');
   const [skills, setSkills] = useState<UserSkill[]>([]);
   const [newSkill, setNewSkill] = useState("");
+  const [missions, setMissions] = useState<any[]>([]);
 
   useEffect(() => {
     if (user?.id) {
@@ -54,8 +56,13 @@ export default function EmployeeProfile() {
         .then(fetched => setSkills(fetched))
         .catch(err => {
           console.error("Failed to load skills", err);
-          toast.error("Failed to load skills");
         });
+      
+      missionService.getUserAssignments()
+        .then(assignments => {
+            setMissions(assignments);
+        })
+        .catch(err => console.error("Failed to load assignments", err));
     }
   }, [user?.id]);
   
@@ -258,9 +265,16 @@ export default function EmployeeProfile() {
                       </div>
                       <Switch
                         checked={isAvailable}
-                        onCheckedChange={(checked) => {
-                          setIsAvailable(checked);
-                          toast.success(checked ? 'You are now available' : 'You are now unavailable');
+                        onCheckedChange={async (checked) => {
+                          try {
+                            if (user?.id) {
+                              await userService.updateAvailability(user.id, checked ? 'AVAILABLE' : 'UNAVAILABLE');
+                              setIsAvailable(checked);
+                              toast.success(checked ? 'You are now available' : 'You are now unavailable');
+                            }
+                          } catch (err) {
+                            toast.error('Failed to update availability');
+                          }
                         }}
                       />
                     </div>
@@ -278,14 +292,14 @@ export default function EmployeeProfile() {
                         <Award className="h-4 w-4 text-primary" />
                         <span className="text-sm">Fairness Score</span>
                       </div>
-                      <Badge variant="outline">{currentUser.fairnessScore}%</Badge>
+                      <Badge variant="outline">{user?.fairnessScore || 100}%</Badge>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <TrendingUp className="h-4 w-4 text-green-600" />
                         <span className="text-sm">Total Missions</span>
                       </div>
-                      <span className="font-semibold">{currentUser.totalMissions}</span>
+                      <span className="font-semibold">{missions.length}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -293,7 +307,7 @@ export default function EmployeeProfile() {
                         <span className="text-sm">Last Mission</span>
                       </div>
                       <span className="text-sm text-muted-foreground">
-                        {currentUser.lastMissionDate || 'None'}
+                        {missions.length > 0 ? new Date(missions[0].mission.endDate).toLocaleDateString() : 'None'}
                       </span>
                     </div>
                   </CardContent>
@@ -306,18 +320,21 @@ export default function EmployeeProfile() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {missionHistory.map((mission, index) => (
-                        <div key={index} className="flex items-center gap-3 text-sm">
+                      {missions.slice(0, 5).map((assignment: any) => (
+                        <div key={assignment.id} className="flex items-center gap-3 text-sm">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
                           <div className="flex-1">
-                            <p className="font-medium">{mission.title}</p>
-                            <p className="text-xs text-muted-foreground">{mission.date}</p>
+                            <p className="font-medium">{assignment.mission.title}</p>
+                            <p className="text-xs text-muted-foreground">{new Date(assignment.mission.startDate).toLocaleDateString()}</p>
                           </div>
                           <Badge variant="secondary" className="text-xs">
-                            Completed
+                            {assignment.mission.status.replace('_', ' ')}
                           </Badge>
                         </div>
                       ))}
+                      {missions.length === 0 && (
+                        <p className="text-sm text-muted-foreground">No recent missions</p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

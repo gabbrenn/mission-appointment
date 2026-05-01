@@ -22,34 +22,29 @@ import {
   Calendar,
   MapPin,
 } from "lucide-react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { formatDate, mockMissions, mockUsers } from "@/lib/mockData";
+import { formatDate, mockUsers } from "@/lib/mockData";
 import { toast } from "sonner";
+import { missionService } from "@/services/mission.service";
 
 export default function SubstitutionForm() {
-  const { id } = useParams();
+  const { assignmentId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   
-  const mission = mockMissions.find(m => m.id === id) || mockMissions[0];
+  const mission = location.state?.mission || { title: "Unknown Mission", assignedTo: null };
   
   const [reason, setReason] = useState("");
   const [explanation, setExplanation] = useState("");
-  const [suggestedReplacement, setSuggestedReplacement] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get available employees for replacement suggestion
-  const availableEmployees = mockUsers.filter(
-    u => u.role === 'employee' && u.isAvailable && u.id !== mission.assignedTo?.id
-  );
-
   const reasonOptions = [
-    { value: 'health', label: 'Raison de Santé' },
-    { value: 'family', label: 'Urgence Familiale' },
-    { value: 'conflict', label: 'Conflit de Planning' },
-    { value: 'training', label: 'Formation Obligatoire' },
-    { value: 'other', label: 'Autre Raison' },
+    { value: 'MEDICAL', label: 'Raison de Santé' },
+    { value: 'FAMILY_EMERGENCY', label: 'Urgence Familiale' },
+    { value: 'CONFLICT_OF_INTEREST', label: 'Conflit de Planning / Intérêt' },
+    { value: 'OTHER', label: 'Autre Raison' },
   ];
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,13 +69,27 @@ export default function SubstitutionForm() {
       return;
     }
 
+    if (!assignmentId) {
+        toast.error("No assignment found to substitute");
+        return;
+    }
+
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast.success("Demande de remplacement soumise avec succès");
-    navigate('/employee');
+    try {
+        await missionService.declineWithSubstitution(assignmentId, {
+            reasonCategory: reason,
+            detailedReason: explanation,
+            supportingDocuments: files.map(f => f.name) // In a real app, upload files first and send URLs
+        });
+        toast.success("Demande de remplacement soumise avec succès");
+        navigate('/employee');
+    } catch (err: any) {
+        console.error(err);
+        toast.error(err.response?.data?.message || "Failed to submit substitution request");
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (
@@ -166,25 +175,7 @@ export default function SubstitutionForm() {
                     </p>
                   </div>
 
-                  {/* Suggested Replacement */}
-                  <div className="space-y-2">
-                    <Label htmlFor="replacement">Suggest a Replacement (Optional)</Label>
-                    <Select value={suggestedReplacement} onValueChange={setSuggestedReplacement}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select an employee" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableEmployees.map(emp => (
-                          <SelectItem key={emp.id} value={emp.id}>
-                            {emp.firstName} {emp.lastName} - {emp.department}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      If you know an available and qualified colleague
-                    </p>
-                  </div>
+
 
                   {/* File Upload */}
                   <div className="space-y-2">
@@ -294,35 +285,7 @@ export default function SubstitutionForm() {
               </CardContent>
             </Card>
 
-            {/* Suggested Replacement Preview */}
-            {suggestedReplacement && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Remplaçant Suggéré</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {(() => {
-                    const emp = availableEmployees.find(e => e.id === suggestedReplacement);
-                    if (!emp) return null;
-                    return (
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <User className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium">
-                            {emp.firstName} {emp.lastName}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {emp.department} • Score: {emp.fairnessScore}%
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </CardContent>
-              </Card>
-            )}
+
           </div>
         </div>
       </div>
