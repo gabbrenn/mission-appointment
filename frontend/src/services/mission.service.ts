@@ -253,6 +253,30 @@ export class MissionService {
     const response = await api.get(`/missions/substitution-requests/${requestId}`);
     return response.data.data;
   }
+
+  // Download mission letter
+  async downloadMissionLetter(missionId: string): Promise<void> {
+    const response = await api.get(`/missions/${missionId}/letter`, {
+      responseType: 'blob',
+    });
+    
+    // Create a Blob from the PDF Stream
+    const file = new Blob([response.data], { type: 'application/pdf' });
+    
+    // Build a URL from the file
+    const fileURL = URL.createObjectURL(file);
+    
+    // Create a temp <a> tag to download file
+    const link = document.createElement('a');
+    link.href = fileURL;
+    link.setAttribute('download', `mission_order_${missionId}.pdf`); // or any other extension
+    document.body.appendChild(link);
+    link.click();
+    
+    // Clean up
+    link.parentNode?.removeChild(link);
+    URL.revokeObjectURL(fileURL);
+  }
 }
 
 export const missionService = new MissionService();

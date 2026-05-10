@@ -36,6 +36,7 @@ export default function MissionDetails() {
   const [assignment, setAssignment] = useState<MissionAssignment | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [isDownloadingLetter, setIsDownloadingLetter] = useState(false);
 
   const fetchMissionDetails = useCallback(async () => {
     if (!id) return;
@@ -111,6 +112,21 @@ export default function MissionDetails() {
       toast.error('Failed to mark mission as completed');
     } finally {
       setIsCompleting(false);
+    }
+  };
+
+  const handleDownloadLetter = async () => {
+    if (!mission) return;
+    
+    try {
+      setIsDownloadingLetter(true);
+      await missionService.downloadMissionLetter(mission.id);
+      toast.success('Mission letter downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading mission letter:', error);
+      toast.error('Failed to download mission letter');
+    } finally {
+      setIsDownloadingLetter(false);
     }
   };
 
@@ -436,6 +452,17 @@ export default function MissionDetails() {
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     Submit Report
+                  </Button>
+                )}
+                {['APPROVED', 'IN_PROGRESS', 'COMPLETED'].includes(mission.status) && (
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    onClick={handleDownloadLetter}
+                    disabled={isDownloadingLetter}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    {isDownloadingLetter ? 'Downloading...' : 'Download Mission Order'}
                   </Button>
                 )}
               </CardContent>
