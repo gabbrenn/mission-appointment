@@ -172,8 +172,8 @@ export class MissionService {
   }
 
   // Auto-assign mission to eligible employees
-  async autoAssignMission(missionId: string, maxAssignees = 1): Promise<AutoAssignmentResult[]> {
-    const response = await api.post(`/missions/${missionId}/auto-assign`, { maxAssignees });
+  async autoAssignMission(missionId: string, maxAssignees = 1, allowCrossDepartment = false): Promise<any> {
+    const response = await api.post(`/missions/${missionId}/auto-assign`, { maxAssignees, allowCrossDepartment });
     return response.data.data;
   }
 

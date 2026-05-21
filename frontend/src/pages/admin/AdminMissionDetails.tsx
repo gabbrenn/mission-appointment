@@ -18,8 +18,17 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
+  Users,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/mockData";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function AdminMissionDetails() {
   const navigate = useNavigate();
@@ -28,6 +37,9 @@ export default function AdminMissionDetails() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [substitutionComments, setSubstitutionComments] = useState("");
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [suggestedEmployees, setSuggestedEmployees] = useState<any[]>([]);
+  const [pendingMissionId, setPendingMissionId] = useState<string>('');
 
   useEffect(() => {
     const loadMission = async () => {
@@ -90,8 +102,21 @@ export default function AdminMissionDetails() {
   const handleApproveSubstitution = async (requestId: string) => {
     try {
       setIsSubmitting(true);
-      await missionService.processSubstitutionRequest(requestId, 'APPROVED', substitutionComments);
-      toast.success("Substitution approved");
+      const response = await missionService.processSubstitutionRequest(requestId, 'APPROVED', substitutionComments);
+      const autoAssignResult = response.autoAssignResult;
+      
+      if (autoAssignResult && autoAssignResult.needsConfirmation) {
+          setSuggestedEmployees(autoAssignResult.suggestedEmployees || []);
+          setPendingMissionId(mission!.id);
+          setIsConfirmationOpen(true);
+          return;
+      } else if (autoAssignResult && autoAssignResult.assigned && autoAssignResult.assignments.length > 0) {
+          const emp = autoAssignResult.assignments[0].employee;
+          toast.success(`Substitution approved & auto-assigned to ${emp.firstName} ${emp.lastName}`);
+      } else {
+          toast.success("Substitution approved successfully");
+      }
+      
       const updated = await missionService.getMissionById(id!);
       setMission(updated);
     } catch (error: any) {
@@ -389,6 +414,103 @@ export default function AdminMissionDetails() {
           </div>
         </div>
       </div>
+      {/* Cross-Department Confirmation Dialog */}
+      <Dialog open={isConfirmationOpen} onOpenChange={setIsConfirmationOpen}>
+        <DialogContent className="max-w-xl bg-background border-border text-foreground shadow-2xl rounded-2xl p-6">
+          <DialogHeader className="space-y-3">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-950/30">
+              <Users className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+            </div>
+            <DialogTitle className="text-xl font-bold text-center">
+              Confirm Cross-Department Assignment
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground text-center text-sm leading-relaxed">
+              No eligible employees were found in your department. However, we found qualified candidates in other departments who match the required skills.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="my-5 space-y-4">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Suggested Candidates
+            </div>
+            <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+              {suggestedEmployees.map((candidate, idx) => (
+                <div 
+                  key={candidate.id} 
+                  className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-xl border border-border bg-card hover:bg-accent/40 transition-colors duration-200 gap-3"
+                >
+                  <div className="space-y-1">
+                    <div className="font-semibold text-sm flex items-center gap-2">
+                      <span className="text-foreground">{candidate.firstName} {candidate.lastName}</span>
+                      {idx === 0 && (
+                        <Badge className="bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 text-[10px] font-bold px-1.5 py-0.5">
+                          Best Fit
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {candidate.departmentName} &bull; {candidate.email}
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {candidate.skills.slice(0, 3).map((skill: string, sIdx: number) => (
+                        <Badge key={sIdx} variant="outline" className="text-[10px] py-0 px-1.5">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-muted-foreground">Match Score</div>
+                    <div className="font-bold text-primary text-sm">
+                      {Math.round(candidate.score || 85)}%
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 mt-4">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={async () => {
+                setIsConfirmationOpen(false);
+                toast.info("Substitution approved; mission requires manual assignment");
+                const updated = await missionService.getMissionById(id!);
+                setMission(updated);
+              }}
+            >
+              Assign Manually
+            </Button>
+            <Button
+              className="w-full sm:w-auto bg-primary hover:bg-primary/95 text-primary-foreground font-semibold shadow-md"
+              onClick={async () => {
+                setIsConfirmationOpen(false);
+                setIsSubmitting(true);
+                try {
+                  const result = await missionService.autoAssignMission(pendingMissionId, 1, true);
+                  if (result && result.assigned && result.assignments.length > 0) {
+                    const emp = result.assignments[0].employee;
+                    toast.success(`Successfully assigned to ${emp.firstName} ${emp.lastName}!`);
+                  } else {
+                    toast.success("Substitution approved, manual assignment required");
+                  }
+                } catch (err) {
+                  console.error(err);
+                  toast.error("Cross-department auto-assignment failed");
+                } finally {
+                  setIsSubmitting(false);
+                  const updated = await missionService.getMissionById(id!);
+                  setMission(updated);
+                }
+              }}
+            >
+              Auto-Assign Best Match
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
