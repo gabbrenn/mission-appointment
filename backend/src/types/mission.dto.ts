@@ -40,6 +40,7 @@ export interface MissionFilterDto {
 export interface AutoAssignmentDto {
     missionId: string;
     maxAssignees?: number;
+    allowCrossDepartment?: boolean;
 }
 
 export interface AssignmentResultDto {

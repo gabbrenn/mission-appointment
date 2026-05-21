@@ -83,28 +83,168 @@ export class MissionService {
     }
 
     // Auto-assignment logic
-    async autoAssignMission(data: AutoAssignmentDto): Promise<AssignmentResultDto[]> {
+    async autoAssignMission(data: AutoAssignmentDto): Promise<any> {
         const mission = await this.getMissionById(data.missionId);
 
-        if (mission.status !== MissionStatus.DRAFT) {
-            throw new ApiError("Can only auto-assign missions in DRAFT status", 400);
+        if (mission.status !== MissionStatus.DRAFT && mission.status !== MissionStatus.PENDING_ASSIGNMENT) {
+            throw new ApiError("Can only auto-assign missions in DRAFT or PENDING_ASSIGNMENT status", 400);
         }
 
-        // Get eligible employees from mission's department
-        const eligibleEmployees = await this.missionRepository.getEligibleEmployees(
-            mission.departmentId,
-            mission.requiredQualifications
-        );
+        // Get all existing assignments for this mission to see who declined / was substituted
+        const existingAssignments = await prisma.missionAssignment.findMany({
+            where: { missionId: mission.id },
+            select: { employeeId: true }
+        });
+        const excludedEmployeeIds = existingAssignments.map(a => a.employeeId);
+
+        // Find all active employees in the department (excluding head of department)
+        const allDeptEmployees = await prisma.user.findMany({
+            where: {
+                departmentId: mission.departmentId,
+                accountStatus: "ACTIVE",
+                role: { not: "HEAD_OF_DEPARTMENT" },
+            },
+            include: {
+                skills: true,
+                assignments: {
+                    include: { mission: true },
+                    orderBy: { assignedAt: "desc" },
+                    take: 5
+                }
+            }
+        });
+
+        let eligibleEmployees = [];
+
+        // 1. "if someone have attended mission and is only one available in that department system can allow that mission to be assigned to that employee again"
+        // If the department only has 1 active non-head employee, we can allow re-assigning them unless they have already declined or been substituted on THIS specific mission.
+        const hasDeclinedOrSubstitutedThisMission = allDeptEmployees.length === 1 ? await prisma.missionAssignment.findFirst({
+            where: {
+                missionId: mission.id,
+                employeeId: allDeptEmployees[0]?.id,
+                assignmentStatus: { in: ['DECLINED', 'SUBSTITUTED'] }
+            }
+        }) : null;
+
+        if (allDeptEmployees.length === 1 && !hasDeclinedOrSubstitutedThisMission) {
+            eligibleEmployees = allDeptEmployees;
+        } else {
+            // Otherwise, filter by availabilityStatus: "AVAILABLE" and exclude already assigned/declined ones
+            eligibleEmployees = allDeptEmployees.filter(emp => 
+                emp.availabilityStatus === "AVAILABLE" && 
+                !excludedEmployeeIds.includes(emp.id)
+            );
+        }
+
+        // 2. If no available employee in department, try relaxing availability status (e.g. check if there's someone active in the department)
+        if (eligibleEmployees.length === 0 && allDeptEmployees.length > 0) {
+            // Find active employees in department who aren't on leave and haven't already declined/been assigned to this mission
+            eligibleEmployees = allDeptEmployees.filter(emp => 
+                emp.availabilityStatus !== "ON_LEAVE" && 
+                !excludedEmployeeIds.includes(emp.id)
+            );
+        }
+
+        // 3. If STILL no eligible employees in department:
+        // "if there's no person in department also system can take someone from another department but it can provide modal prompt for confirming it to someone who is creating that mission"
+        if (eligibleEmployees.length === 0) {
+            // Search in other departments
+            let otherDeptEmployees = await prisma.user.findMany({
+                where: {
+                    departmentId: { not: mission.departmentId },
+                    accountStatus: "ACTIVE",
+                    availabilityStatus: "AVAILABLE",
+                    role: { not: "HEAD_OF_DEPARTMENT" },
+                    id: { notIn: excludedEmployeeIds }
+                },
+                include: {
+                    skills: true,
+                    department: true,
+                    assignments: {
+                        include: { mission: true },
+                        orderBy: { assignedAt: "desc" },
+                        take: 5
+                    }
+                }
+            });
+
+            // Fallback: Relax availability constraint for other departments if no strictly AVAILABLE ones are found
+            if (otherDeptEmployees.length === 0) {
+                otherDeptEmployees = await prisma.user.findMany({
+                    where: {
+                        departmentId: { not: mission.departmentId },
+                        accountStatus: "ACTIVE",
+                        availabilityStatus: { not: "ON_LEAVE" },
+                        role: { not: "HEAD_OF_DEPARTMENT" },
+                        id: { notIn: excludedEmployeeIds }
+                    },
+                    include: {
+                        skills: true,
+                        department: true,
+                        assignments: {
+                            include: { mission: true },
+                            orderBy: { assignedAt: "desc" },
+                            take: 5
+                        }
+                    }
+                });
+            }
+
+            if (otherDeptEmployees.length === 0) {
+                return {
+                    success: true,
+                    assigned: false,
+                    message: "No eligible employees found in any department."
+                };
+            }
+
+            // Calculate scores for other department employees
+            const scoredOthers = otherDeptEmployees.map((employee) => {
+                const skillScore = this.calculateSkillScore(employee.skills, mission.requiredQualifications);
+                const fairnessScore = this.calculateFairnessScore(employee.assignments);
+                const totalScore = skillScore * 0.7 + fairnessScore * 0.3;
+
+                return {
+                    id: employee.id,
+                    firstName: employee.firstName,
+                    lastName: employee.lastName,
+                    email: employee.email,
+                    departmentName: employee.department?.name || "Other",
+                    skills: employee.skills.map(s => s.skillName),
+                    score: totalScore
+                };
+            }).sort((a, b) => b.score - a.score);
+
+            if (!data.allowCrossDepartment) {
+                // Return suggested employees for confirmation prompt
+                return {
+                    success: true,
+                    assigned: false,
+                    needsConfirmation: true,
+                    suggestedEmployees: scoredOthers.slice(0, 3) // Return top 3 suggestions
+                };
+            } else {
+                // If allowed, we take the top one
+                const bestEmployee = otherDeptEmployees.find(e => e.id === scoredOthers[0].id);
+                if (bestEmployee) {
+                    eligibleEmployees = [bestEmployee];
+                }
+            }
+        }
 
         if (eligibleEmployees.length === 0) {
-            throw new ApiError("No eligible employees found for this mission", 400);
+            return {
+                success: true,
+                assigned: false,
+                message: "No eligible employees found for assignment."
+            };
         }
 
-        // Calculate scores for each employee
+        // Calculate scores for selected employees
         const scoredEmployees = eligibleEmployees.map((employee) => {
             const skillScore = this.calculateSkillScore(employee.skills, mission.requiredQualifications);
             const fairnessScore = this.calculateFairnessScore(employee.assignments);
-            const totalScore = skillScore * 0.7 + fairnessScore * 0.3; // 70% skills, 30% fairness
+            const totalScore = skillScore * 0.7 + fairnessScore * 0.3;
 
             return {
                 employee,
@@ -157,7 +297,11 @@ export class MissionService {
             status: MissionStatus.PENDING_ASSIGNMENT,
         });
 
-        return assignments;
+        return {
+            success: true,
+            assigned: true,
+            assignments
+        };
     }
 
     // Calculate skill match score (0-100)
@@ -248,7 +392,10 @@ export class MissionService {
     // Get assignments for current user (employee view)
     async getUserAssignments(userId: string) {
         return prisma.missionAssignment.findMany({
-            where: { employeeId: userId },
+            where: { 
+                employeeId: userId,
+                assignmentStatus: { not: 'SUBSTITUTED' }
+            },
             include: {
                 mission: {
                     include: {
@@ -438,6 +585,7 @@ export class MissionService {
                 department: true,
                 createdBy: true,
                 assignments: {
+                    orderBy: { assignedAt: 'desc' },
                     include: {
                         employee: true,
                     },
@@ -550,6 +698,7 @@ export class MissionService {
         });
 
         // Update assignment based on decision
+        let autoAssignResult: any = null;
         if (status === 'APPROVED') {
             // Mark original assignment as substituted
             await prisma.missionAssignment.update({
@@ -566,6 +715,20 @@ export class MissionService {
                     status: 'PENDING_ASSIGNMENT',
                 },
             });
+
+            // Automatically attempt auto-assignment!
+            try {
+                autoAssignResult = await this.autoAssignMission({
+                    missionId: substitutionRequest.assignment.missionId,
+                    maxAssignees: 1
+                });
+            } catch (assignErr) {
+                console.error("Auto-assignment failed during substitution approval:", assignErr);
+                autoAssignResult = {
+                    success: false,
+                    message: assignErr instanceof Error ? assignErr.message : "Auto-assignment failed."
+                };
+            }
         } else {
             // Rejected - revert assignment to pending
             await prisma.missionAssignment.update({
@@ -578,7 +741,22 @@ export class MissionService {
             });
         }
 
-        return updatedRequest;
+        const result = {
+            id: updatedRequest.id,
+            reasonCategory: updatedRequest.reasonCategory,
+            detailedReason: updatedRequest.detailedReason,
+            supportingDocuments: updatedRequest.supportingDocuments,
+            status: updatedRequest.status,
+            reviewerComments: updatedRequest.reviewerComments,
+            reviewedAt: updatedRequest.reviewedAt,
+            assignmentId: updatedRequest.assignmentId,
+            employeeId: updatedRequest.employeeId,
+            createdAt: updatedRequest.createdAt,
+            updatedAt: updatedRequest.updatedAt,
+            autoAssignResult
+        };
+
+        return result;
     }
 
     // Get substitution requests (all for managers, own for employees)

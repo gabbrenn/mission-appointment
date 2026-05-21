@@ -47,7 +47,7 @@ const validateRequest = (req: Request, res: Response, next: NextFunction) => {
 router.get(
     "/",
     authenticate,
-    authorize(["ADMIN", "HR", "HEAD_OF_DEPARTMENT"]),
+    authorize(["ADMIN", "HR", "HEAD_OF_DEPARTMENT", "DIRECTOR"]),
     (req: Request, res: Response, next: NextFunction) => departmentController.getAllDepartments(req, res, next)
 );
 
@@ -91,7 +91,7 @@ router.get(
 router.get(
     "/:id",
     authenticate,
-    authorize(["ADMIN", "HR", "HEAD_OF_DEPARTMENT"]),
+    authorize(["ADMIN", "HR", "HEAD_OF_DEPARTMENT", "DIRECTOR"]),
     (req: Request, res: Response, next: NextFunction) => departmentController.getDepartmentById(req, res, next)
 );
 
@@ -135,7 +135,7 @@ router.get(
 router.post(
     "/",
     authenticate,
-    authorize(["ADMIN"]),
+    authorize(["ADMIN", "DIRECTOR"]),
     [
         body("name").notEmpty().withMessage("name is required"),
         body("budgetAllocation").optional().isNumeric().withMessage("budgetAllocation must be numeric"),
@@ -195,7 +195,7 @@ router.post(
 router.put(
     "/:id",
     authenticate,
-    authorize(["ADMIN"]),
+    authorize(["ADMIN", "DIRECTOR"]),
     [
         param("id").notEmpty(),
         body("budgetAllocation").optional().isNumeric().withMessage("budgetAllocation must be numeric"),
@@ -234,7 +234,7 @@ router.put(
 router.delete(
     "/:id",
     authenticate,
-    authorize(["ADMIN"]),
+    authorize(["ADMIN", "DIRECTOR"]),
     (req: Request, res: Response, next: NextFunction) => departmentController.deleteDepartment(req, res, next)
 );
 
@@ -280,7 +280,7 @@ router.delete(
 router.get(
     "/:id/users",
     authenticate,
-    authorize(["ADMIN", "HR", "HEAD_OF_DEPARTMENT"]),
+    authorize(["ADMIN", "HR", "HEAD_OF_DEPARTMENT", "DIRECTOR"]),
     (req: Request, res: Response, next: NextFunction) => departmentController.getDepartmentUsers(req, res, next)
 );
 
@@ -315,7 +315,7 @@ router.get(
 router.patch(
     "/:id/remove-head",
     authenticate,
-    authorize(["ADMIN"]),
+    authorize(["ADMIN", "DIRECTOR"]),
     (req: Request, res: Response, next: NextFunction) => departmentController.removeDepartmentHead(req, res, next)
 );
 
@@ -370,7 +370,7 @@ router.patch(
 router.post(
     "/:id/transfer-users",
     authenticate,
-    authorize(["ADMIN", "HR"]),
+    authorize(["ADMIN", "HR", "DIRECTOR"]),
     [
         body("toDepartmentId").isUUID().withMessage("toDepartmentId must be a valid UUID"),
         body("userIds").isArray().withMessage("userIds must be an array"),

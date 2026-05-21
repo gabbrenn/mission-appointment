@@ -68,11 +68,12 @@ export class MissionController {
     async autoAssignMission(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
             const missionId = req.params.id as string;
-            const { maxAssignees } = req.body;
+            const { maxAssignees, allowCrossDepartment } = req.body;
             
             const dto: AutoAssignmentDto = {
                 missionId,
                 maxAssignees: maxAssignees || 1,
+                allowCrossDepartment: !!allowCrossDepartment,
             };
             
             const assignments = await this.missionService.autoAssignMission(dto);

@@ -18,6 +18,7 @@ export class MissionRepository {
                     },
                 },
                 assignments: {
+                    orderBy: { assignedAt: "desc" },
                     include: {
                         employee: {
                             select: {
@@ -48,6 +49,7 @@ export class MissionRepository {
                     },
                 },
                 assignments: {
+                    orderBy: { assignedAt: "desc" },
                     include: {
                         employee: {
                             select: {
@@ -89,6 +91,7 @@ export class MissionRepository {
                     },
                 },
                 assignments: {
+                    orderBy: { assignedAt: "desc" },
                     include: {
                         employee: {
                             select: {
@@ -113,6 +116,7 @@ export class MissionRepository {
                 //missionType: true,
                 department: true,
                 assignments: {
+                    orderBy: { assignedAt: "desc" },
                     include: {
                         employee: {
                             select: {
