@@ -28,10 +28,9 @@ class AuthService {
         if (user.accountStatus !== 'ACTIVE') {
             throw new Error('Account is not active');
         }
-        // Verify password
+        // Verify password - strictly always required
         const isPasswordValid = await (0, password_1.comparePassword)(password, user.password);
-        // Allow bypass for very first login since the user doesn't know the system-generated password
-        if (!isPasswordValid && user.lastLogin !== null) {
+        if (!isPasswordValid) {
             throw new Error('Invalid email or password');
         }
         // Generate JWT token with user and role info
