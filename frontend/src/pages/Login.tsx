@@ -100,7 +100,7 @@ export default function Login() {
           </div>
 
           <p className="text-sm text-white/50">
-            © 2025 Régie Nationale des Postes - All rights reserved
+            © 2026 Régie Nationale des Postes - All rights reserved
           </p>
         </div>
       </div>
