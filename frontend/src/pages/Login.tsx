@@ -100,7 +100,7 @@ export default function Login() {
           </div>
 
           <p className="text-sm text-white/50">
-            © 2025 Régie Nationale des Postes - All rights reserved
+            © 2026 Régie Nationale des Postes - All rights reserved
           </p>
         </div>
       </div>
@@ -127,10 +127,7 @@ export default function Login() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="fr">French</SelectItem>
-                <SelectItem value="rn">Kirundi</SelectItem>
                 <SelectItem value="en">English</SelectItem>
-                <SelectItem value="sw">Swahili</SelectItem>
               </SelectContent>
             </Select>
           </div>
