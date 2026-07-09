@@ -89,7 +89,7 @@ export default function Login() {
                 <p className="text-sm text-white/70">Active Employees</p>
               </div>
               <div>
-                <p className="text-3xl font-bold">48</p>
+                <p className="text-3xl font-bold">50</p>
                 <p className="text-sm text-white/70">Post Offices</p>
               </div>
               <div>
