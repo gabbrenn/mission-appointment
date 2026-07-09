@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
+import {
   ArrowLeft,
   Upload,
   FileText,
@@ -41,17 +41,20 @@ interface ExpenseItem {
 }
 
 export default function ReportForm() {
-  const { id } = useParams();
+  const { missionId: id } = useParams();   // Route is /employee/report/:missionId
   const navigate = useNavigate();
   const location = useLocation();
-  
-  const mission = location.state?.mission || { id, title: "Unknown Mission", budget: 0 };
-  
+
+  const mission = location.state?.mission || { id, title: "Unknown Mission", estimatedBudget: '0', budget: 0 };
+  // The API returns estimatedBudget as a string; normalise to a number
+  const allocatedBudget = Number(mission.estimatedBudget ?? mission.budget ?? 0);
+
   const [activityReport, setActivityReport] = useState("");
   const [expenses, setExpenses] = useState<ExpenseItem[]>([
     { id: '1', category: 'Transport', description: '', amount: 0 },
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [additionalDocs, setAdditionalDocs] = useState<File[]>([]);
 
   const expenseCategories = [
     'Transport',
@@ -76,19 +79,28 @@ export default function ReportForm() {
   };
 
   const updateExpense = (id: string, field: keyof ExpenseItem, value: string | number | File | null) => {
-    setExpenses(expenses.map(e => 
+    setExpenses(expenses.map(e =>
       e.id === id ? { ...e, [field]: value } : e
     ));
   };
 
   const handleReceiptUpload = (id: string, file: File) => {
-    setExpenses(expenses.map(e => 
+    setExpenses(expenses.map(e =>
       e.id === id ? { ...e, receipt: file } : e
     ));
   };
 
-  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const budgetVariance = mission.budget - totalExpenses;
+  const handleAdditionalDocsUpload = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setAdditionalDocs(prev => [...prev, ...Array.from(files)]);
+  };
+
+  const removeAdditionalDoc = (index: number) => {
+    setAdditionalDocs(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const totalExpenses = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const budgetVariance = allocatedBudget - totalExpenses;
 
   const handleSaveDraft = async () => {
     toast.success("Draft saved");
@@ -96,33 +108,69 @@ export default function ReportForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!activityReport.trim()) {
       toast.error("Please write the activity report");
       return;
     }
-    
+
     if (expenses.some(e => e.amount <= 0 || !e.description)) {
-      toast.error("Please complete all expenses");
+      toast.error("Please complete all expense fields (description and amount)");
       return;
     }
 
     if (!id) {
-        toast.error("No mission ID found");
-        return;
+      toast.error("No mission ID found");
+      return;
     }
 
     setIsSubmitting(true);
     try {
-        await missionService.submitMissionReport(id, { activityReport });
-        toast.success("Report submitted successfully");
-        navigate('/employee');
+      // Upload any receipt files first, then replace the File object with the returned path
+      const expensesWithPaths = await Promise.all(
+        expenses.map(async (expense) => {
+          let receiptFilePath: string | undefined = undefined;
+          if (expense.receipt instanceof File) {
+            try {
+              receiptFilePath = await missionService.uploadFile(expense.receipt);
+            } catch (uploadErr) {
+              console.warn('Receipt upload failed for expense', expense.id, uploadErr);
+            }
+          }
+          return {
+            category: expense.category,
+            description: expense.description,
+            amount: expense.amount,
+            receiptFilePath,
+          };
+        })
+      );
+
+      // Upload any additional supporting documents
+      const additionalDocPaths: string[] = [];
+      for (const doc of additionalDocs) {
+        try {
+          const path = await missionService.uploadFile(doc);
+          additionalDocPaths.push(path);
+        } catch (uploadErr) {
+          console.warn('Additional document upload failed for', doc.name, uploadErr);
+        }
+      }
+
+      await missionService.submitMissionReport(id, {
+        activityReport,
+        expenses: expensesWithPaths,
+        additionalDocuments: additionalDocPaths,
+      });
+      toast.success("Report submitted successfully");
+      navigate('/employee');
     } catch (err: any) {
-        toast.error(err.response?.data?.message || "Failed to submit report");
+      toast.error(err.response?.data?.message || "Failed to submit report");
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   };
+
 
   return (
     <DashboardLayout userRole="employee">
@@ -130,8 +178,8 @@ export default function ReportForm() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="icon"
               onClick={() => navigate(-1)}
             >
@@ -169,7 +217,7 @@ export default function ReportForm() {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant="outline">Budget: {formatCurrency(mission.budget)}</Badge>
+                <Badge variant="outline">Budget: {formatCurrency(allocatedBudget)}</Badge>
               </div>
             </div>
           </CardContent>
@@ -259,19 +307,23 @@ export default function ReportForm() {
                           </TableCell>
                           <TableCell>
                             {expense.receipt ? (
-                              <div className="flex items-center gap-1">
-                                <FileText className="h-4 w-4 text-green-600" />
+                              <div className="flex items-center gap-1 max-w-[110px]">
+                                <FileText className="h-4 w-4 text-green-600 shrink-0" />
+                                <span className="text-xs truncate text-green-700" title={expense.receipt.name}>
+                                  {expense.receipt.name}
+                                </span>
                                 <Button
                                   type="button"
                                   variant="ghost"
                                   size="sm"
+                                  className="p-0 h-auto shrink-0"
                                   onClick={() => updateExpense(expense.id, 'receipt', undefined)}
                                 >
-                                  <X className="h-3 w-3" />
+                                  <X className="h-3 w-3 text-muted-foreground" />
                                 </Button>
                               </div>
                             ) : (
-                              <Label className="cursor-pointer">
+                              <Label className="cursor-pointer flex items-center gap-1 text-muted-foreground hover:text-primary">
                                 <Input
                                   type="file"
                                   className="hidden"
@@ -281,7 +333,8 @@ export default function ReportForm() {
                                     if (file) handleReceiptUpload(expense.id, file);
                                   }}
                                 />
-                                <Upload className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                                <Upload className="h-4 w-4" />
+                                <span className="text-xs">Upload</span>
                               </Label>
                             )}
                           </TableCell>
@@ -311,7 +364,7 @@ export default function ReportForm() {
                     Photos, presentations, or other relevant documents
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
                     <Input
                       type="file"
@@ -319,6 +372,10 @@ export default function ReportForm() {
                       className="hidden"
                       id="docs-upload"
                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.ppt,.pptx"
+                      onChange={(e) => {
+                        handleAdditionalDocsUpload(e.target.files);
+                        e.target.value = "";
+                      }}
                     />
                     <label htmlFor="docs-upload" className="cursor-pointer">
                       <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
@@ -330,6 +387,33 @@ export default function ReportForm() {
                       </p>
                     </label>
                   </div>
+
+                  {additionalDocs.length > 0 && (
+                    <ul className="space-y-2">
+                      {additionalDocs.map((file, index) => (
+                        <li
+                          key={`${file.name}-${index}`}
+                          className="flex items-center justify-between gap-2 rounded-md border p-2"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <FileText className="h-4 w-4 text-green-600 shrink-0" />
+                            <span className="text-sm truncate" title={file.name}>
+                              {file.name}
+                            </span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="p-0 h-auto shrink-0"
+                            onClick={() => removeAdditionalDoc(index)}
+                          >
+                            <X className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -345,7 +429,7 @@ export default function ReportForm() {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Allocated Budget</span>
-                      <span className="font-medium">{formatCurrency(mission.budget)}</span>
+                      <span className="font-medium">{formatCurrency(allocatedBudget)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Total Expenses</span>
@@ -389,7 +473,7 @@ export default function ReportForm() {
                             <span>{formatCurrency(catTotal)}</span>
                           </div>
                           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div 
+                            <div
                               className="h-full bg-primary"
                               style={{ width: `${totalExpenses > 0 ? (catTotal / totalExpenses) * 100 : 0}%` }}
                             />
@@ -408,9 +492,9 @@ export default function ReportForm() {
                     <Send className="h-4 w-4 mr-2" />
                     {isSubmitting ? "Submitting..." : "Submit Report"}
                   </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     className="w-full"
                     onClick={() => navigate(-1)}
                   >

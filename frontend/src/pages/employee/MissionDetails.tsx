@@ -18,6 +18,8 @@ import {
   ArrowLeft,
   Building,
   Target,
+  Receipt,
+  ExternalLink,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
@@ -34,6 +36,7 @@ export default function MissionDetails() {
   const { addAppNotification } = useNotifications();
   const [mission, setMission] = useState<Mission | null>(null);
   const [assignment, setAssignment] = useState<MissionAssignment | null>(null);
+  const [report, setReport] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCompleting, setIsCompleting] = useState(false);
   const [isDownloadingLetter, setIsDownloadingLetter] = useState(false);
@@ -43,9 +46,10 @@ export default function MissionDetails() {
 
     try {
       setLoading(true);
-      const [missionData, assignmentData] = await Promise.all([
+      const [missionData, assignmentData, reportData] = await Promise.all([
         missionService.getMissionById(id),
         missionService.getUserAssignmentByMission(id).catch(() => null),
+        missionService.getMissionReport(id).catch(() => null),
       ]);
 
       const derivedAssignment =
@@ -55,6 +59,7 @@ export default function MissionDetails() {
 
       setMission(missionData);
       setAssignment(derivedAssignment);
+      setReport(reportData);
     } catch (error) {
       console.error('Error fetching mission details:', error);
       navigate('/employee');
@@ -360,33 +365,100 @@ export default function MissionDetails() {
               </Card>
             )}
 
-            {/* Documents */}
-            {/* <Card>
-              <CardHeader>
-                <CardTitle>Documents</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {documents.map((doc, index) => (
-                    <div 
-                      key={index}
-                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium text-sm">{doc.name}</p>
-                          <p className="text-xs text-muted-foreground">{doc.size}</p>
+            {/* Report section */}
+            {report && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Submitted Report
+                    <Badge variant="secondary" className="ml-auto">{report.status}</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-muted-foreground">Activity Report</h4>
+                    <p className="whitespace-pre-wrap text-sm">{report.activityReport}</p>
+                  </div>
+                  {report.expenses && report.expenses.length > 0 && (
+                    <>
+                      <Separator />
+                      <div>
+                        <h4 className="font-semibold mb-3 flex items-center gap-2">
+                          <Receipt className="h-4 w-4" />
+                          Expenses
+                        </h4>
+                        <div className="space-y-2">
+                          {report.expenses.map((exp: any, i: number) => (
+                            <div key={i} className="flex items-center justify-between p-3 border rounded-lg text-sm">
+                              <div className="flex-1">
+                                <span className="font-medium">{exp.category}</span>
+                                <span className="text-muted-foreground ml-2">— {exp.description}</span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="font-semibold">{formatCurrency(Number(exp.amount))}</span>
+                                {exp.receiptFilePath && (
+                                  <a
+                                    href={`http://localhost:3000${exp.receiptFilePath}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:underline flex items-center gap-1"
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                    Receipt
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-3 pt-3 border-t flex justify-between font-semibold">
+                          <span>Total Expenses</span>
+                          <span>{formatCurrency(report.expenses.reduce((sum: number, e: any) => sum + Number(e.amount), 0))}</span>
                         </div>
                       </div>
-                      <Button variant="ghost" size="sm">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card> */}
+                    </>
+                  )}
+                  {report.additionalDocuments && report.additionalDocuments.length > 0 && (
+                    <>
+                      <Separator />
+                      <div>
+                        <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm text-muted-foreground">
+                          Supporting Documents
+                        </h4>
+                        <div className="space-y-2">
+                          {report.additionalDocuments.map((docPath: string, i: number) => {
+                            const filename = docPath.substring(docPath.lastIndexOf('/') + 1);
+                            return (
+                              <div key={i} className="flex items-center justify-between p-2.5 border rounded-lg text-sm bg-accent/10">
+                                <span className="font-medium truncate max-w-[250px]" title={filename}>{filename}</span>
+                                <a
+                                  href={`http://localhost:3000${docPath}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-primary hover:underline flex items-center gap-1 text-xs shrink-0"
+                                >
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                  View File
+                                </a>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  {report.submittedAt && (
+                    <p className="text-xs text-muted-foreground pt-2">
+                      Submitted on {new Date(report.submittedAt).toLocaleString()}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Documents (commented out) */}
+            {/* <Card>...</Card> */}
           </div>
 
           {/* Sidebar */}
@@ -449,11 +521,13 @@ export default function MissionDetails() {
                     className="w-full"
                     variant="secondary"
                     onClick={() => navigate(`/employee/report/${mission.id}`, { state: { mission } })}
+                    disabled={!!report}
                   >
                     <FileText className="h-4 w-4 mr-2" />
-                    Submit Report
+                    {report ? 'Report Submitted' : 'Submit Report'}
                   </Button>
                 )}
+
                 {['APPROVED', 'IN_PROGRESS', 'COMPLETED'].includes(mission.status) && (
                   <Button
                     className="w-full"

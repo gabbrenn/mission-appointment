@@ -301,6 +301,13 @@ class MissionService {
                 assignmentReason: assignment.assignmentReason,
                 fairnessScore: parseFloat(assignment.fairnessScoreAtAssignment.toString()),
             });
+            // Send call-to-action email to the assigned employee (fire-and-forget)
+            try {
+                await this.emailService.sendMissionAssignmentEmail(assignment.employee.email, `${assignment.employee.firstName} ${assignment.employee.lastName}`, mission.title, mission.missionNumber, mission.destination, new Date(mission.startDate).toLocaleDateString('en-GB'), new Date(mission.endDate).toLocaleDateString('en-GB'));
+            }
+            catch (emailErr) {
+                console.error(`Failed to send assignment notification email to ${assignment.employee.email}:`, emailErr);
+            }
         }
         // Update mission status
         await this.missionRepository.updateMission(mission.id, {
@@ -411,6 +418,37 @@ class MissionService {
             orderBy: { assignedAt: "desc" },
         });
     }
+    async getUserAssignmentByMission(missionId, userId) {
+        return prisma_1.prisma.missionAssignment.findFirst({
+            where: {
+                missionId,
+                employeeId: userId,
+                assignmentStatus: { not: 'SUBSTITUTED' }
+            },
+            include: {
+                mission: {
+                    include: {
+                        department: {
+                            select: {
+                                id: true,
+                                name: true,
+                                code: true,
+                            },
+                        },
+                    },
+                },
+                employee: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        role: true,
+                    }
+                }
+            }
+        });
+    }
     // Employee responds to mission assignment
     async respondToAssignment(assignmentId, userId, response, notes) {
         const assignment = await prisma_1.prisma.missionAssignment.findUnique({
@@ -444,6 +482,20 @@ class MissionService {
                 where: { id: assignment.missionId },
                 data: { status: 'ASSIGNED' },
             });
+        }
+        // Notify all ADMIN users of the employee's response (fire-and-forget)
+        try {
+            const adminUsers = await prisma_1.prisma.user.findMany({
+                where: { role: 'ADMIN', accountStatus: 'ACTIVE' },
+                select: { email: true, firstName: true, lastName: true },
+            });
+            const employeeFullName = `${updatedAssignment.employee.firstName} ${updatedAssignment.employee.lastName}`;
+            for (const admin of adminUsers) {
+                await this.emailService.sendAssignmentResponseNotification(admin.email, `${admin.firstName} ${admin.lastName}`, employeeFullName, updatedAssignment.mission.title, updatedAssignment.mission.missionNumber, response, notes);
+            }
+        }
+        catch (emailErr) {
+            console.error('Failed to send admin assignment response notification:', emailErr);
         }
         return updatedAssignment;
     }
@@ -627,6 +679,20 @@ class MissionService {
                 substitutionRequest: true,
             },
         });
+        // Notify all ADMIN users of the substitution request (fire-and-forget)
+        try {
+            const adminUsers = await prisma_1.prisma.user.findMany({
+                where: { role: 'ADMIN', accountStatus: 'ACTIVE' },
+                select: { email: true, firstName: true, lastName: true },
+            });
+            const employeeFullName = `${updatedAssignment.employee.firstName} ${updatedAssignment.employee.lastName}`;
+            for (const admin of adminUsers) {
+                await this.emailService.sendAssignmentResponseNotification(admin.email, `${admin.firstName} ${admin.lastName}`, employeeFullName, updatedAssignment.mission.title, updatedAssignment.mission.missionNumber, 'SUBSTITUTION_REQUESTED', detailedReason);
+            }
+        }
+        catch (emailErr) {
+            console.error('Failed to send admin substitution request notification:', emailErr);
+        }
         return {
             assignment: updatedAssignment,
             substitutionRequest,
@@ -841,26 +907,57 @@ class MissionService {
             orderBy: { assignedAt: 'desc' },
         });
     }
-    async submitMissionReport(missionId, userId, activityReport) {
+    async submitMissionReport(missionId, userId, activityReport, expenses) {
         const mission = await this.getMissionById(missionId);
         if (!mission) {
             throw new ApiError_1.ApiError("Mission not found", 404);
         }
-        // Create the report
-        return prisma_1.prisma.missionReport.create({
-            data: {
-                missionId,
-                employeeId: userId,
-                activityReport,
-                status: 'SUBMITTED',
-                submittedAt: new Date(),
+        // Create report and expenses in a transaction
+        return prisma_1.prisma.$transaction(async (tx) => {
+            const report = await tx.missionReport.create({
+                data: {
+                    missionId,
+                    employeeId: userId,
+                    activityReport,
+                    status: 'SUBMITTED',
+                    submittedAt: new Date(),
+                }
+            });
+            if (expenses && expenses.length > 0) {
+                await tx.expenseItem.createMany({
+                    data: expenses.map(e => ({
+                        missionId,
+                        reportId: report.id,
+                        category: e.category,
+                        description: e.description,
+                        amount: e.amount,
+                        receiptFilePath: e.receiptFilePath ?? null,
+                        transactionDate: new Date(),
+                    }))
+                });
             }
+            // Return report with expenses
+            return tx.missionReport.findUnique({
+                where: { id: report.id },
+                include: {
+                    expenses: true,
+                    employee: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                        }
+                    }
+                }
+            });
         });
     }
     async getMissionReport(missionId) {
         return prisma_1.prisma.missionReport.findFirst({
             where: { missionId },
             include: {
+                expenses: true,
                 employee: {
                     select: {
                         id: true,

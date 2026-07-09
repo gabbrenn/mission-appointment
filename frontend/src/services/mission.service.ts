@@ -1,6 +1,8 @@
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// Derive base URL (without the /api suffix) for uploading files
+const BASE_URL = API_BASE_URL.replace(/\/api$/, '');
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -9,6 +11,17 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+// Axios instance without /api prefix - used for the /api/upload endpoint
+const apiUpload = axios.create({
+  baseURL: BASE_URL,
+  timeout: 60000,
+});
+apiUpload.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
 });
 
 // Add auth token to requests
@@ -230,8 +243,30 @@ export class MissionService {
     return response.data.data;
   }
 
+  // Upload a file and return the server file path
+  async uploadFile(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiUpload.post('/api/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data.data.filePath as string;
+  }
+
   // Submit mission report
-  async submitMissionReport(missionId: string, data: { activityReport: string }): Promise<any> {
+  async submitMissionReport(
+    missionId: string,
+    data: {
+      activityReport: string;
+      expenses?: Array<{
+        category: string;
+        description: string;
+        amount: number;
+        receiptFilePath?: string;
+      }>;
+      additionalDocuments?: string[];
+    }
+  ): Promise<any> {
     const response = await api.post(`/missions/${missionId}/report`, data);
     return response.data.data;
   }

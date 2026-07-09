@@ -104,6 +104,19 @@ export class MissionController {
         }
     }
 
+    // Get assignment for current user by mission ID
+    async getUserAssignmentByMission(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            const missionId = req.params.id as string;
+            const userId = req.user!.id;
+            const assignment = await this.missionService.getUserAssignmentByMission(missionId, userId);
+            return ApiResponseHelper.success(res, assignment, "User mission assignment fetched successfully");
+        } catch (error) {
+            next(error);
+        }
+    }
+
+
     // Employee responds to mission assignment
     async respondToAssignment(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
@@ -247,19 +260,19 @@ export class MissionController {
         }
     }
 
-    // Submit mission report
     async submitReport(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
             const missionId = req.params.id as string;
-            const { activityReport } = req.body;
+            const { activityReport, expenses, additionalDocuments } = req.body;
             const userId = req.user!.id;
 
-            const report = await this.missionService.submitMissionReport(missionId, userId, activityReport);
+            const report = await this.missionService.submitMissionReport(missionId, userId, activityReport, expenses, additionalDocuments);
             return ApiResponseHelper.success(res, report, "Report submitted successfully");
         } catch (error) {
             next(error);
         }
     }
+
 
     // Get mission report
     async getMissionReport(req: AuthenticatedRequest, res: Response, next: NextFunction) {

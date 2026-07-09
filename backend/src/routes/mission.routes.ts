@@ -357,6 +357,34 @@ router.get(
 
 /**
  * @swagger
+ * /api/missions/{id}/assignment:
+ *   get:
+ *     summary: Get logged-in user's assignment for a mission
+ *     tags: [Missions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Mission assignment retrieved successfully
+ */
+router.get(
+    "/:id/assignment",
+    authenticate,
+    [param("id").isUUID().withMessage("Mission ID must be valid UUID")],
+    validateRequest,
+    (req: Request, res: Response, next: NextFunction) => missionController.getUserAssignmentByMission(req, res, next)
+);
+
+
+/**
+ * @swagger
  * /api/missions/assignments/{assignmentId}/respond:
  *   post:
  *     summary: Employee responds to mission assignment (Accept or Decline)
@@ -760,6 +788,8 @@ router.post(
     [
         param("id").isUUID().withMessage("Mission ID must be valid UUID"),
         body("activityReport").isString().withMessage("activityReport must be a string").notEmpty(),
+        body("expenses").optional().isArray().withMessage("expenses must be an array"),
+        body("additionalDocuments").optional().isArray().withMessage("additionalDocuments must be an array"),
     ],
     validateRequest,
     (req: Request, res: Response, next: NextFunction) => missionController.submitReport(req, res, next)

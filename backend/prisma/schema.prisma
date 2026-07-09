@@ -318,6 +318,8 @@ model MissionReport {
 
   expenses ExpenseItem[]
 
+  additionalDocuments String[] @default([])
+
   submittedAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

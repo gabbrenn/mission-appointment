@@ -290,6 +290,26 @@ router.post("/:id/auto-assign", auth_1.authenticate, (0, auth_1.authorize)(["ADM
 router.get("/:id/assignments", auth_1.authenticate, [(0, express_validator_1.param)("id").isUUID().withMessage("Mission ID must be valid UUID")], validateRequest, (req, res, next) => missionController.getMissionAssignments(req, res, next));
 /**
  * @swagger
+ * /api/missions/{id}/assignment:
+ *   get:
+ *     summary: Get logged-in user's assignment for a mission
+ *     tags: [Missions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Mission assignment retrieved successfully
+ */
+router.get("/:id/assignment", auth_1.authenticate, [(0, express_validator_1.param)("id").isUUID().withMessage("Mission ID must be valid UUID")], validateRequest, (req, res, next) => missionController.getUserAssignmentByMission(req, res, next));
+/**
+ * @swagger
  * /api/missions/assignments/{assignmentId}/respond:
  *   post:
  *     summary: Employee responds to mission assignment (Accept or Decline)
@@ -627,6 +647,7 @@ router.post("/:id/reject", auth_1.authenticate, (0, auth_1.authorize)(["HEAD_OF_
 router.post("/:id/report", auth_1.authenticate, (0, auth_1.authorize)(["EMPLOYEE", "ADMIN", "DIRECTOR"]), [
     (0, express_validator_1.param)("id").isUUID().withMessage("Mission ID must be valid UUID"),
     (0, express_validator_1.body)("activityReport").isString().withMessage("activityReport must be a string").notEmpty(),
+    (0, express_validator_1.body)("expenses").optional().isArray().withMessage("expenses must be an array"),
 ], validateRequest, (req, res, next) => missionController.submitReport(req, res, next));
 /**
  * @swagger

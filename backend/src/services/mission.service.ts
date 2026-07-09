@@ -439,6 +439,39 @@ export class MissionService {
         });
     }
 
+    async getUserAssignmentByMission(missionId: string, userId: string) {
+        return prisma.missionAssignment.findFirst({
+            where: {
+                missionId,
+                employeeId: userId,
+                assignmentStatus: { not: 'SUBSTITUTED' }
+            },
+            include: {
+                mission: {
+                    include: {
+                        department: {
+                            select: {
+                                id: true,
+                                name: true,
+                                code: true,
+                            },
+                        },
+                    },
+                },
+                employee: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        role: true,
+                    }
+                }
+            }
+        });
+    }
+
+
     // Employee responds to mission assignment
     async respondToAssignment(assignmentId: string, userId: string, response: 'ACCEPTED' | 'DECLINED', notes?: string) {
         const assignment = await prisma.missionAssignment.findUnique({
@@ -975,29 +1008,76 @@ export class MissionService {
         });
     }
 
-    async submitMissionReport(missionId: string, userId: string, activityReport: string) {
+    async submitMissionReport(
+        missionId: string,
+        userId: string,
+        activityReport: string,
+        expenses?: Array<{
+            category: string;
+            description: string;
+            amount: number;
+            receiptFilePath?: string;
+        }>,
+        additionalDocuments?: string[]
+    ) {
         const mission = await this.getMissionById(missionId);
 
         if (!mission) {
             throw new ApiError("Mission not found", 404);
         }
 
-        // Create the report
-        return prisma.missionReport.create({
-            data: {
-                missionId,
-                employeeId: userId,
-                activityReport,
-                status: 'SUBMITTED',
-                submittedAt: new Date(),
+        // Create report and expenses in a transaction
+        return prisma.$transaction(async (tx) => {
+            const report = await tx.missionReport.create({
+                data: {
+                    missionId,
+                    employeeId: userId,
+                    activityReport,
+                    status: 'SUBMITTED',
+                    additionalDocuments: additionalDocuments ?? [],
+                    submittedAt: new Date(),
+                }
+            });
+
+
+            if (expenses && expenses.length > 0) {
+                await tx.expenseItem.createMany({
+                    data: expenses.map(e => ({
+                        missionId,
+                        reportId: report.id,
+                        category: e.category,
+                        description: e.description,
+                        amount: e.amount,
+                        receiptFilePath: e.receiptFilePath ?? null,
+                        transactionDate: new Date(),
+                    }))
+                });
             }
+
+            // Return report with expenses
+            return tx.missionReport.findUnique({
+                where: { id: report.id },
+                include: {
+                    expenses: true,
+                    employee: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                        }
+                    }
+                }
+            });
         });
     }
+
 
     async getMissionReport(missionId: string) {
         return prisma.missionReport.findFirst({
             where: { missionId },
             include: {
+                expenses: true,
                 employee: {
                     select: {
                         id: true,
@@ -1010,6 +1090,7 @@ export class MissionService {
             orderBy: { createdAt: 'desc' }
         });
     }
+
 
     async generateMissionLetter(missionId: string, userId: string): Promise<Buffer> {
         const mission = await this.getMissionById(missionId);

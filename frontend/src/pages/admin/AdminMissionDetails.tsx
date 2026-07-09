@@ -19,6 +19,9 @@ import {
   XCircle,
   AlertTriangle,
   Users,
+  FileText,
+  Receipt,
+  ExternalLink,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/mockData";
 import {
@@ -34,6 +37,7 @@ export default function AdminMissionDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [mission, setMission] = useState<Mission | null>(null);
+  const [report, setReport] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [substitutionComments, setSubstitutionComments] = useState("");
@@ -47,8 +51,12 @@ export default function AdminMissionDetails() {
 
       try {
         setIsLoading(true);
-        const data = await missionService.getMissionById(id);
+        const [data, reportData] = await Promise.all([
+          missionService.getMissionById(id),
+          missionService.getMissionReport(id).catch(() => null),
+        ]);
         setMission(data);
+        setReport(reportData);
       } catch (error) {
         console.error("Failed to load mission details:", error);
         toast.error("Failed to load mission details");
@@ -320,9 +328,108 @@ export default function AdminMissionDetails() {
               </Card>
             )}
 
-          </div>
+          {/* Mission Report — visible to admin when employee has submitted */}
+          {report && (
+            <Card className="card-gov">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Mission Report
+                  <Badge variant="secondary" className="ml-auto">{report.status}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {report.employee && (
+                  <p className="text-sm text-muted-foreground">
+                    Submitted by <span className="font-medium text-foreground">{report.employee.firstName} {report.employee.lastName}</span>
+                  </p>
+                )}
 
-          <div>
+                <div>
+                  <h4 className="text-sm font-semibold mb-1 text-muted-foreground">Activity Report</h4>
+                  <p className="text-sm whitespace-pre-wrap">{report.activityReport}</p>
+                </div>
+
+                {report.expenses && report.expenses.length > 0 && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                        <Receipt className="h-4 w-4" />
+                        Expenses
+                      </h4>
+                      <div className="space-y-2">
+                        {report.expenses.map((exp: any, i: number) => (
+                          <div key={i} className="flex items-center justify-between p-3 border rounded-lg text-sm">
+                            <div className="flex-1">
+                              <span className="font-medium">{exp.category}</span>
+                              <span className="text-muted-foreground ml-2">— {exp.description}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="font-semibold">{formatCurrency(Number(exp.amount))}</span>
+                              {exp.receiptFilePath && (
+                                <a
+                                  href={`http://localhost:3000${exp.receiptFilePath}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-primary hover:underline flex items-center gap-1 text-xs"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                  Receipt
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-3 pt-3 border-t flex justify-between font-semibold text-sm">
+                        <span>Total Expenses</span>
+                        <span>{formatCurrency(report.expenses.reduce((s: number, e: any) => s + Number(e.amount), 0))}</span>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {report.additionalDocuments && report.additionalDocuments.length > 0 && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Supporting Documents</h4>
+                      <div className="space-y-2">
+                        {report.additionalDocuments.map((docPath: string, i: number) => {
+                          const filename = docPath.substring(docPath.lastIndexOf('/') + 1);
+                          return (
+                            <div key={i} className="flex items-center justify-between p-2.5 border rounded-lg text-sm bg-accent/10">
+                              <span className="font-medium truncate max-w-[260px]" title={filename}>{filename}</span>
+                              <a
+                                href={`http://localhost:3000${docPath}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline flex items-center gap-1 text-xs shrink-0"
+                              >
+                                <ExternalLink className="h-3.5 w-3.5" />
+                                View File
+                              </a>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {report.submittedAt && (
+                  <p className="text-xs text-muted-foreground pt-1">
+                    Submitted on {new Date(report.submittedAt).toLocaleString()}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          </div>{/* end lg:col-span-2 */}
+
+          <div>{/* sidebar */}
             <Card className="card-gov mb-6">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

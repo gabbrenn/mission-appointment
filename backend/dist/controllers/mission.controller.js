@@ -96,6 +96,18 @@ class MissionController {
             next(error);
         }
     }
+    // Get assignment for current user by mission ID
+    async getUserAssignmentByMission(req, res, next) {
+        try {
+            const missionId = req.params.id;
+            const userId = req.user.id;
+            const assignment = await this.missionService.getUserAssignmentByMission(missionId, userId);
+            return response_1.ApiResponseHelper.success(res, assignment, "User mission assignment fetched successfully");
+        }
+        catch (error) {
+            next(error);
+        }
+    }
     // Employee responds to mission assignment
     async respondToAssignment(req, res, next) {
         try {
@@ -216,9 +228,9 @@ class MissionController {
     async submitReport(req, res, next) {
         try {
             const missionId = req.params.id;
-            const { activityReport } = req.body;
+            const { activityReport, expenses } = req.body;
             const userId = req.user.id;
-            const report = await this.missionService.submitMissionReport(missionId, userId, activityReport);
+            const report = await this.missionService.submitMissionReport(missionId, userId, activityReport, expenses);
             return response_1.ApiResponseHelper.success(res, report, "Report submitted successfully");
         }
         catch (error) {
